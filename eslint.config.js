@@ -138,6 +138,26 @@ export default tseslint.config(
       ...STORAGE_GLOBALS,
     ]),
   },
+  // U3 のファイル（変更セットの中身一覧）。U1・U2 の一覧を広げて書き、禁止を消さない（U3 cicd-pipeline.md 段階 2）
+  {
+    files: ['src/changeset-viewer/**/*.{ts,tsx}'],
+    rules: {
+      'no-restricted-globals': ['error', ...NETWORK_GLOBALS, ...STORAGE_GLOBALS],
+      'no-restricted-properties': [
+        'error',
+        ...BASE_RESTRICTED_PROPERTIES,
+        ...NETWORK_PROPERTIES,
+        ...STORAGE_PROPERTIES,
+      ],
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector: 'MemberExpression[property.name="onMessageExternal"]',
+          message: '外部からのメッセージは受け取りません（U3 NFR3.3）。',
+        },
+      ],
+    },
+  },
   {
     files: ['scripts/**/*.mjs'],
     languageOptions: {

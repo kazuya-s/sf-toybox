@@ -46,5 +46,52 @@
   "errorLog_contentEntryFailed": { "message": "Processing on the Salesforce page failed" },
   "errorLog_pageSizeBarLoadFailed": { "message": "Could not load the page size bar" },
   "errorLog_pageSizeBarRenderFailed": { "message": "Could not show the page size bar" },
-  "errorLog_unknownMessageKey": { "message": "A message text was not found" }
+  "errorLog_unknownMessageKey": { "message": "A message text was not found" },
+  "tool_changesetViewer_name": { "message": "Change set contents" },
+  "tool_changesetViewer_description": {
+    "message": "Lists the contents of an outbound change set from the toolbar icon"
+  },
+  "tool_changesetAddAssist_name": { "message": "Change set add assistant" },
+  "tool_changesetAddAssist_description": {
+    "message": "Adds search to the outbound change set \"Add\" page and adds selected items together"
+  },
+  "viewer_changeSet": { "message": "Change set: {name}" },
+  "viewer_total": { "message": "{count} items" },
+  "viewer_loading": { "message": "Loading… ({loaded} / {total} pages)" },
+  "viewer_loadingUnknown": { "message": "Loading… ({loaded} pages)" },
+  "viewer_empty": { "message": "This change set has no components" },
+  "viewer_filteredEmpty": { "message": "No components match the filter" },
+  "viewer_clearFilter": { "message": "Clear filter" },
+  "viewer_partial": { "message": "Some pages could not be loaded. The list is incomplete" },
+  "viewer_error": { "message": "Could not load" },
+  "viewer_reloadHint": { "message": "Reload the page, then open this again" },
+  "viewer_retry": { "message": "Try again" },
+  "viewer_sessionExpired": { "message": "Log in to Salesforce again, then reopen this" },
+  "viewer_wrongPage": { "message": "Open this on an outbound change set detail page" },
+  "viewer_disabled": { "message": "This tool is turned off" },
+  "viewer_openSettings": { "message": "Open settings" },
+  "viewer_nameFilter": { "message": "Filter by name" },
+  "viewer_typeFilter": { "message": "Type" },
+  "viewer_typeAll": { "message": "All" },
+  "viewer_colType": { "message": "Type" },
+  "viewer_colApiName": { "message": "API Name" },
+  "viewer_colParent": { "message": "Parent Object" },
+  "viewer_count": { "message": "Showing {shown} of {total}" },
+  "viewer_copy": { "message": "Copy list" },
+  "viewer_csv": { "message": "Save as CSV" },
+  "viewer_copied": { "message": "Copied" },
+  "viewer_saved": { "message": "Saved" },
+  "viewer_copyFailed": { "message": "Could not copy" },
+  "viewer_saveFailed": { "message": "Could not save" },
+  "errorLog_viewerLoadFailed": { "message": "Could not load the change set contents" },
+  "errorLog_viewerPartial": { "message": "Could not load part of the change set contents" },
+  "errorLog_viewerSessionExpired": {
+    "message": "The login had expired while loading the change set contents"
+  },
+  "errorLog_viewerCopyFailed": { "message": "Could not copy the change set contents" },
+  "errorLog_viewerSaveFailed": { "message": "Could not save the change set contents as CSV" },
+  "errorLog_viewerHandlerFailed": {
+    "message": "Handling the change set contents request on the Salesforce page failed"
+  },
+  "errorLog_viewerRenderFailed": { "message": "Could not show the change set contents list" }
 }

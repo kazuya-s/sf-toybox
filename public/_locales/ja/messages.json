@@ -48,5 +48,54 @@
   "errorLog_contentEntryFailed": { "message": "Salesforce の画面での処理に失敗しました" },
   "errorLog_pageSizeBarLoadFailed": { "message": "件数バーの部品を読み込めませんでした" },
   "errorLog_pageSizeBarRenderFailed": { "message": "件数バーを表示できませんでした" },
-  "errorLog_unknownMessageKey": { "message": "文言が見つかりませんでした" }
+  "errorLog_unknownMessageKey": { "message": "文言が見つかりませんでした" },
+  "tool_changesetViewer_name": { "message": "変更セットの中身一覧" },
+  "tool_changesetViewer_description": {
+    "message": "ツールバーのアイコンから、送信変更セットの内容を一覧で見ます"
+  },
+  "tool_changesetAddAssist_name": { "message": "変更セットへの追加支援" },
+  "tool_changesetAddAssist_description": {
+    "message": "送信変更セットの「追加」画面に検索欄を出し、選んだものをまとめて追加します"
+  },
+  "viewer_changeSet": { "message": "変更セット: {name}" },
+  "viewer_total": { "message": "{count} 件" },
+  "viewer_loading": { "message": "読み込んでいます… ({loaded} / {total} ページ)" },
+  "viewer_loadingUnknown": { "message": "読み込んでいます… ({loaded} ページ)" },
+  "viewer_empty": { "message": "この変更セットにはコンポーネントがありません" },
+  "viewer_filteredEmpty": { "message": "条件に一致するコンポーネントがありません" },
+  "viewer_clearFilter": { "message": "絞り込みを解除" },
+  "viewer_partial": { "message": "一部のページを読み込めませんでした。一覧は不完全です" },
+  "viewer_error": { "message": "読み込めませんでした" },
+  "viewer_reloadHint": { "message": "画面を再読み込みしてから、もう一度開いてください" },
+  "viewer_retry": { "message": "もう一度試す" },
+  "viewer_sessionExpired": {
+    "message": "Salesforce にログインし直してから、もう一度開いてください"
+  },
+  "viewer_wrongPage": { "message": "送信変更セットの詳細画面で開いてください" },
+  "viewer_disabled": { "message": "このツールは OFF です" },
+  "viewer_openSettings": { "message": "設定を開く" },
+  "viewer_nameFilter": { "message": "名前で絞り込み" },
+  "viewer_typeFilter": { "message": "種類" },
+  "viewer_typeAll": { "message": "すべて" },
+  "viewer_colType": { "message": "種類" },
+  "viewer_colApiName": { "message": "API 名" },
+  "viewer_colParent": { "message": "親オブジェクト" },
+  "viewer_count": { "message": "表示中 {shown} 件 / 全 {total} 件" },
+  "viewer_copy": { "message": "一覧をコピー" },
+  "viewer_csv": { "message": "CSV で保存" },
+  "viewer_copied": { "message": "コピーしました" },
+  "viewer_saved": { "message": "保存しました" },
+  "viewer_copyFailed": { "message": "コピーできませんでした" },
+  "viewer_saveFailed": { "message": "保存できませんでした" },
+  "errorLog_viewerLoadFailed": { "message": "変更セットの中身を読み込めませんでした" },
+  "errorLog_viewerPartial": { "message": "変更セットの中身の一部を読み込めませんでした" },
+  "errorLog_viewerSessionExpired": {
+    "message": "変更セットの中身の読み込みで、ログインが切れていました"
+  },
+  "errorLog_viewerCopyFailed": { "message": "変更セットの中身をコピーできませんでした" },
+  "errorLog_viewerSaveFailed": { "message": "変更セットの中身を CSV で保存できませんでした" },
+  "errorLog_viewerHandlerFailed": {
+    "message": "Salesforce の画面で、変更セットの中身の頼みの処理に失敗しました"
+  },
+  "errorLog_viewerRenderFailed": { "message": "変更セットの中身一覧を表示できませんでした" }
 }

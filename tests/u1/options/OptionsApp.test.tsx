@@ -41,8 +41,13 @@ describe('設定画面（OptionsApp）', () => {
     await waitFor(() =>
       expect(screen.getByTestId('options-saved-notice')).toHaveTextContent('保存しました'),
     );
+    // 保存は全ツールの値で行う（U3 で changeset-viewer・changeset-add-assist を一覧に足した）
     expect(mockState().local.settings).toEqual(
-      validSettings({ 'page-size-switcher': { enabled: false } }),
+      validSettings({
+        'page-size-switcher': { enabled: false },
+        'changeset-viewer': { enabled: true },
+        'changeset-add-assist': { enabled: true },
+      }),
     );
 
     await act(() => vi.advanceTimersByTimeAsync(2000));

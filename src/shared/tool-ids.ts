@@ -31,6 +31,19 @@ export const TOOL_DEFINITIONS: readonly ToolDefinition[] = [
     descriptionKey: 'tool.pageSize.description',
     defaultEnabled: true,
   },
+  // U3 が changeset-viewer と changeset-add-assist の 2 つを足す（U4 はこのファイルを変えない）
+  {
+    toolId: 'changeset-viewer',
+    nameKey: 'tool.changesetViewer.name',
+    descriptionKey: 'tool.changesetViewer.description',
+    defaultEnabled: true,
+  },
+  {
+    toolId: 'changeset-add-assist',
+    nameKey: 'tool.changesetAddAssist.name',
+    descriptionKey: 'tool.changesetAddAssist.description',
+    defaultEnabled: true,
+  },
 ];
 
 export function isToolId(value: unknown): value is ToolId {

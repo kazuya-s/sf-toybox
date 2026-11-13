@@ -1,0 +1,69 @@
+/**
+ * ツールバーの画面（frontend-components.md の ChangeSetViewerApp、mockups.md S3、functional-spec.md F1・F3・F4）。
+ * 構成: Header、StatusView、PartialBanner、FilterBar、ComponentTable、FilteredEmpty、Footer。
+ * 全体をエラー境界で包む（NFR5.1）。絞り込みと並べ替えは useMemo で計算し、頼み直さない（NFR7.4）。
+ */
+import { useMemo, useState } from 'react';
+import { t } from '../../i18n/presentation';
+import { INITIAL_SORT, NO_FILTER, createCollator } from '../view-state';
+import type { RowFilter, SortState } from '../types';
+import { ComponentListView } from './ComponentListView';
+import { StatusView } from './StatusView';
+import { ViewerErrorBoundary } from './ViewerErrorBoundary';
+import { useViewerLoader } from './use-viewer-loader';
+
+function openSettings(): void {
+  Promise.resolve(chrome.runtime.openOptionsPage()).catch((error: unknown) => {
+    console.error('[sf-toybox:changeset-viewer]', 'openOptionsPage failed', error);
+  });
+}
+
+function ViewerContent() {
+  const { phase, isLoading, retry } = useViewerLoader();
+  // 条件は読み直しても残す（BR1.5）
+  const [filter, setFilter] = useState<RowFilter>(NO_FILTER);
+  const [sort, setSort] = useState<SortState>(INITIAL_SORT);
+  const collator = useMemo(() => createCollator(chrome.i18n.getUILanguage()), []);
+
+  if (phase.kind === 'starting' || phase.kind === 'loading') {
+    return (
+      <StatusView kind="loading" progress={phase.kind === 'loading' ? phase.progress : null} />
+    );
+  }
+  if (phase.kind === 'disabled') {
+    return <StatusView kind="disabled" onOpenSettings={openSettings} />;
+  }
+  if (phase.kind === 'wrong-page') return <StatusView kind="wrong-page" />;
+
+  const { result, state } = phase;
+  if (!result.ok) {
+    return state === 'session-expired' ? (
+      <StatusView kind="session-expired" />
+    ) : (
+      <StatusView kind="error" showReloadHint={result.error.kind === 'notFound'} onRetry={retry} />
+    );
+  }
+  return (
+    <ComponentListView
+      data={result.value}
+      baseState={state}
+      filter={filter}
+      sort={sort}
+      collator={collator}
+      isRetrying={isLoading}
+      onFilterChange={setFilter}
+      onSortChange={setSort}
+      onRetry={retry}
+    />
+  );
+}
+
+export function ChangeSetViewerApp() {
+  return (
+    <ViewerErrorBoundary>
+      <main className="viewer" aria-label={t('tool.changesetViewer.name')}>
+        <ViewerContent />
+      </main>
+    </ViewerErrorBoundary>
+  );
+}

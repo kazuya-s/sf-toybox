@@ -1,0 +1,9 @@
+{
+  "changeSet": { "changeSetId": "0A2000000000001", "name": "TestNoParent", "status": "open" },
+  "components": [
+    { "componentType": "Visualforce Page", "apiName": "TestPage", "parentObject": null },
+    { "componentType": "Custom Object", "apiName": "TestObject__c", "parentObject": null }
+  ],
+  "complete": true,
+  "failedPages": 0
+}

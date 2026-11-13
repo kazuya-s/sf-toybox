@@ -4,6 +4,7 @@
  * この入口は React を読み込まない。通信もしない（NFR7.3）。
  */
 import { defineContentScript } from 'wxt/utils/define-content-script';
+import { registerChangesetViewerHandler } from '../src/changeset-viewer/request-handler';
 import { recordError } from '../src/errors/error-log';
 import { detect } from '../src/page/page-context';
 import { registerPageInfoResponder } from '../src/page/page-info-responder';
@@ -39,6 +40,8 @@ export async function runSalesforceContent(deps: ContentEntryDeps = {}): Promise
     const pageInfo = registerPageInfoResponder(() =>
       detect({ url: window.location.href, document }),
     );
+    // U3: ON の送信変更セットの詳細画面だけ、一覧の頼みの受け取りを登録する（例外は中で記録する）
+    if (pageInfo) await registerChangesetViewerHandler(pageInfo);
     if (!pageInfo || pageInfo.pageKind === 'other') return;
 
     // ON/OFF は画面の読み込み時に 1 回だけ読む（BR1.7）。読めなければ ON（NFR5.2）

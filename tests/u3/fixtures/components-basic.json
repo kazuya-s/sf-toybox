@@ -1,0 +1,10 @@
+{
+  "changeSet": { "changeSetId": "0A2000000000001", "name": "TestChangeSet", "status": "open" },
+  "components": [
+    { "componentType": "Custom Field", "apiName": "TestField__c", "parentObject": "TestObject__c" },
+    { "componentType": "Apex Class", "apiName": "Testhelper", "parentObject": null },
+    { "componentType": "Apex Class", "apiName": "TestZebraService", "parentObject": null }
+  ],
+  "complete": true,
+  "failedPages": 0
+}

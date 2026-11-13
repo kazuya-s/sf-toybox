@@ -72,8 +72,13 @@ describe('ツールの ON/OFF（tool-settings、C1）', () => {
 
     await setEnabled({ toolId: 'page-size-switcher', enabled: false });
 
+    // 全ツール（U3 で changeset-viewer・changeset-add-assist を一覧に足した）の値で書く
     expect(mockState().local.settings).toEqual(
-      validSettings({ 'page-size-switcher': { enabled: false } }),
+      validSettings({
+        'page-size-switcher': { enabled: false },
+        'changeset-viewer': { enabled: true },
+        'changeset-add-assist': { enabled: true },
+      }),
     );
   });
 

@@ -1,0 +1,7 @@
+{
+  "changeSet": { "changeSetId": "0A2000000000001", "name": "TestManyComponents", "status": "open" },
+  "count": 2000,
+  "componentTypes": ["Apex Class", "Custom Field", "Visualforce Page", "Custom Object"],
+  "apiNamePrefix": "TestComponent",
+  "parentObject": "TestObject__c"
+}

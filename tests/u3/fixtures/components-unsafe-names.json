@@ -1,0 +1,23 @@
+{
+  "changeSet": { "changeSetId": "0A2000000000001", "name": "Test<b>Set</b>", "status": "open" },
+  "components": [
+    {
+      "componentType": "Apex Class",
+      "apiName": "Test<script>window.__pwned = true</script>",
+      "parentObject": null
+    },
+    {
+      "componentType": "Apex Class",
+      "apiName": "Test<img src=x onerror=\"window.__pwned = true\">",
+      "parentObject": null
+    },
+    { "componentType": "Custom Field", "apiName": "Test=1+1", "parentObject": "Test\"Quoted\"" },
+    {
+      "componentType": "Custom Field",
+      "apiName": "Test,Comma",
+      "parentObject": "Test\tTab\r\nLine"
+    }
+  ],
+  "complete": true,
+  "failedPages": 0
+}
