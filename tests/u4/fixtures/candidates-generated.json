@@ -1,0 +1,11 @@
+{
+  "description": "多くの候補の作り方（NFR7.4）。tests/u4/helpers/fixtures.ts が、この値から架空の候補を count 件作る。ID は keyPrefix のあとに 0 の並びと連番",
+  "orgHost": "example.my.salesforce.com",
+  "componentType": "CustomField",
+  "count": 2000,
+  "keyPrefix": "00N000000000",
+  "keyDigits": 6,
+  "namePrefix": "TestField",
+  "parentObjects": ["TestAccountLike__c", "TestOrder__c", null],
+  "typeLabel": "Custom Field"
+}

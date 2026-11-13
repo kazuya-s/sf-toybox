@@ -1,0 +1,25 @@
+{
+  "description": "手で書いた架空の候補（親オブジェクトを持たない種類）。名前は Test で始め、ID は 0 の並びだけにする",
+  "orgHost": "example.my.salesforce.com",
+  "componentType": "ApexClass",
+  "candidates": [
+    {
+      "componentKey": "01p000000000002",
+      "name": "TestServiceB",
+      "parentObject": null,
+      "typeLabel": "Apex Class"
+    },
+    {
+      "componentKey": "01p000000000001",
+      "name": "TestServiceA",
+      "parentObject": null,
+      "typeLabel": "Apex Class"
+    },
+    {
+      "componentKey": "01p000000000003",
+      "name": "TestHelper",
+      "parentObject": null,
+      "typeLabel": "Apex Class"
+    }
+  ]
+}

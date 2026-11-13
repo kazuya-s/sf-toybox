@@ -1,0 +1,39 @@
+{
+  "description": "手で書いた架空の候補（親オブジェクトありとなし）。名前は Test で始め、ID は 0 の並びだけにする",
+  "orgHost": "example.my.salesforce.com",
+  "changeSetId": "0A2000000000000AAA",
+  "changeSetName": "Test Change Set",
+  "componentType": "CustomField",
+  "candidates": [
+    {
+      "componentKey": "00N000000000003",
+      "name": "TestStatus__c",
+      "parentObject": "TestOrder__c",
+      "typeLabel": "Custom Field"
+    },
+    {
+      "componentKey": "00N000000000001",
+      "name": "TestAmount__c",
+      "parentObject": "TestInvoice__c",
+      "typeLabel": "Custom Field"
+    },
+    {
+      "componentKey": "00N000000000004",
+      "name": "TestPriority__c",
+      "parentObject": "TestOrder__c",
+      "typeLabel": "Custom Field"
+    },
+    {
+      "componentKey": "00N000000000002",
+      "name": "TestCode__c",
+      "parentObject": null,
+      "typeLabel": "Custom Field"
+    },
+    {
+      "componentKey": "00N000000000005",
+      "name": "TestNote__c",
+      "parentObject": "TestInvoice__c",
+      "typeLabel": "Custom Field"
+    }
+  ]
+}

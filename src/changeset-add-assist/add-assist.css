@@ -1,0 +1,78 @@
+/*
+ * 追加支援に当てるスタイル（U4 frontend-components.md、BR1.5）。
+ * U1 の mountWithSlds が入れる共通の SLDS（assets/slds.css）に加えて、カード・チェック欄・選択欄の
+ * SLDS の CSS だけを取り込み、ビルドで拡張機能に同梱する。外部の配信元からは読み込まない。
+ * Shadow DOM の中に置くため、src/changeset-add-assist/mount.tsx が :root を :host に置き換えて使う。
+ */
+@import '@salesforce-ux/design-system/css/cards/base/index.css';
+@import '@salesforce-ux/design-system/css/checkbox/base/index.css';
+@import '@salesforce-ux/design-system/css/select/base/index.css';
+
+.sftoybox-add-assist {
+  margin: 0.5rem 0;
+}
+
+.sftoybox-add-assist__body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0 1rem 0.75rem;
+}
+
+.sftoybox-add-assist__target {
+  margin-left: 0.75rem;
+  font-weight: normal;
+}
+
+.sftoybox-add-assist__search {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.5rem 0.75rem;
+}
+
+.sftoybox-add-assist__search .slds-input {
+  min-width: 16rem;
+}
+
+/* 横幅が 1024px 以下のときは、親オブジェクトの選択を 2 行目に折り返す */
+@media (max-width: 1024px) {
+  .sftoybox-add-assist__parent {
+    flex-basis: 100%;
+  }
+}
+
+.sftoybox-add-assist__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+}
+
+.sftoybox-add-assist__error {
+  color: var(--slds-g-color-error-base-40, #ba0517);
+}
+
+.sftoybox-add-assist__list {
+  max-height: 24rem;
+  overflow-y: auto;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sftoybox-add-assist__parent-name {
+  margin-left: 0.5rem;
+  color: var(--slds-g-color-on-surface-1, #5c5c5c);
+}
+
+.sftoybox-add-assist__result {
+  border: 1px solid var(--slds-g-color-border-1, #c9c9c9);
+  border-radius: 0.25rem;
+  padding: 0.5rem 0.75rem;
+}
+
+.sftoybox-add-assist__result h3 {
+  margin-top: 0.5rem;
+  font-weight: bold;
+}

@@ -18,6 +18,24 @@ export const SALESFORCE_MATCHES = [
 /** Vite の部品の一覧での、件数バーの部品と入口の名前 */
 export const PAGE_SIZE_BAR_ENTRY_NAME = 'page-size-bar';
 export const CONTENT_ENTRY_NAME = 'salesforce.content';
+/** Vite の部品の一覧での、追加支援の部品の名前（U4 cicd-pipeline.md 段階 5） */
+export const CHANGESET_ADD_ASSIST_ENTRY_NAME = 'changeset-add-assist';
+
+/** 入口から後から読み込む部品。読み込むファイルがすべて web_accessible_resources に載っていること */
+const LAZY_ENTRIES = [
+  { name: PAGE_SIZE_BAR_ENTRY_NAME, label: '件数バー' },
+  { name: CHANGESET_ADD_ASSIST_ENTRY_NAME, label: '追加支援' },
+];
+
+/**
+ * 入口に入ってはいけない U4 のファイル（U4 cicd-pipeline.md 段階 6）。
+ * 入口に入ってよいのは、部品を後から読み込む src/changeset-add-assist/load.ts だけ。
+ */
+const ADD_ASSIST_SOURCE_PREFIXES = [
+  'src/changeset-add-assist/',
+  'entrypoints/changeset-add-assist',
+];
+const ADD_ASSIST_ENTRY_ALLOWED = ['src/changeset-add-assist/load.ts'];
 
 /** package.json の実行時の依存として許す一覧（U2 security-design.md §9、NFR3.4） */
 export const ALLOWED_DEPENDENCIES = ['react', 'react-dom', '@salesforce-ux/design-system'];
@@ -198,17 +216,19 @@ function collectLoadedFiles(viteManifest, entryKey) {
 
 /** @param {any} manifest @param {Record<string, any>} viteManifest @param {string[]} errors */
 function checkWebAccessibleResources(manifest, viteManifest, errors) {
-  const entryKey = findEntryKey(viteManifest, PAGE_SIZE_BAR_ENTRY_NAME);
-  if (!entryKey) {
-    errors.push(`Vite の部品の一覧に件数バーの部品（${PAGE_SIZE_BAR_ENTRY_NAME}）がありません`);
-    return;
-  }
   const patterns = (
     Array.isArray(manifest.web_accessible_resources) ? manifest.web_accessible_resources : []
   ).flatMap((entry) => asStringArray(entry.resources));
-  for (const file of collectLoadedFiles(viteManifest, entryKey)) {
-    if (!patterns.some((pattern) => matchesResource(pattern, file))) {
-      errors.push(`件数バーが読み込む ${file} が web_accessible_resources に載っていません`);
+  for (const { name, label } of LAZY_ENTRIES) {
+    const entryKey = findEntryKey(viteManifest, name);
+    if (!entryKey) {
+      errors.push(`Vite の部品の一覧に${label}の部品（${name}）がありません`);
+      continue;
+    }
+    for (const file of collectLoadedFiles(viteManifest, entryKey)) {
+      if (!patterns.some((pattern) => matchesResource(pattern, file))) {
+        errors.push(`${label}が読み込む ${file} が web_accessible_resources に載っていません`);
+      }
     }
   }
 }
@@ -256,6 +276,16 @@ function checkEntryHasNoReact(outDir, viteManifest, errors) {
   const found = modules.filter((id) => FORBIDDEN_ENTRY_MODULES.some((dir) => id.includes(dir)));
   if (found.length > 0) {
     errors.push(`入口に React が入っています: ${[...new Set(found)].slice(0, 5).join(', ')}`);
+  }
+  const addAssist = modules.filter(
+    (id) =>
+      ADD_ASSIST_SOURCE_PREFIXES.some((prefix) => id.includes(prefix)) &&
+      !ADD_ASSIST_ENTRY_ALLOWED.some((allowed) => id.endsWith(allowed)),
+  );
+  if (addAssist.length > 0) {
+    errors.push(
+      `入口に追加支援の部品が入っています: ${[...new Set(addAssist)].slice(0, 5).join(', ')}`,
+    );
   }
 }
 

@@ -1,4 +1,46 @@
 {
+  "addAssist_title": { "message": "sf-toybox 検索" },
+  "addAssist_target": { "message": "追加先: {name}" },
+  "addAssist_loadingName": { "message": "読み込んでいます…" },
+  "addAssist_search": { "message": "名前で検索" },
+  "addAssist_parent": { "message": "親オブジェクト" },
+  "addAssist_parentAll": { "message": "すべて" },
+  "addAssist_matchCount": { "message": "一致: {count} 件" },
+  "addAssist_selected": { "message": "選択中: {count} 件" },
+  "addAssist_selectedHidden": { "message": "（うち {hidden} 件は絞り込みで非表示）" },
+  "addAssist_noMatch": { "message": "一致するコンポーネントがありません" },
+  "addAssist_selectSomething": { "message": "追加するものを選んでください" },
+  "addAssist_add": { "message": "選んだ {count} 件を追加" },
+  "addAssist_adding": { "message": "追加しています… ({done} / {total})" },
+  "addAssist_loadingCandidates": { "message": "候補を読み込んでいます…" },
+  "addAssist_partial": { "message": "一部の候補を読み込めませんでした" },
+  "addAssist_loadError": { "message": "候補を読み込めませんでした" },
+  "addAssist_retry": { "message": "もう一度試す" },
+  "addAssist_resultTitle": { "message": "結果" },
+  "addAssist_succeeded": { "message": "追加できたもの ({count})" },
+  "addAssist_failed": { "message": "追加できなかったもの ({count})" },
+  "addAssist_untried": { "message": "試さなかったもの ({count})" },
+  "addAssist_unconfirmed": {
+    "message": "追加できたか確かめられませんでした。変更セットの画面で確かめてください"
+  },
+  "addAssist_close": { "message": "閉じる" },
+  "addAssist_leaveWarning": {
+    "message": "追加しています。このページを離れると、残りは追加されません。送信中の 1 件は、変更セットの画面で確かめてください"
+  },
+  "addAssist_typeUnreadable": { "message": "この画面の種類を読み取れませんでした" },
+  "addAssist_aborted": {
+    "message": "追加を途中で止めました。変更セットの画面で結果を確かめてください"
+  },
+  "errorLog_addAssistChangeSetFailed": { "message": "追加先の変更セットを読み込めませんでした" },
+  "errorLog_addAssistPreconditionsFailed": { "message": "追加の前の確認に失敗しました" },
+  "errorLog_addAssistCandidatesFailed": { "message": "追加の候補を読み込めませんでした" },
+  "errorLog_addAssistCandidatesPartial": { "message": "追加の候補の一部を読み込めませんでした" },
+  "errorLog_addAssistTypeUnreadable": { "message": "追加画面の種類を読み取れませんでした" },
+  "errorLog_addAssistAddFailed": { "message": "変更セットへの追加に失敗しました" },
+  "errorLog_addAssistRenderFailed": { "message": "追加支援を表示できませんでした" },
+  "errorLog_addAssistAborted": { "message": "追加を途中で止めました" },
+  "errorLog_addAssistLoadFailed": { "message": "追加支援の部品を読み込めませんでした" },
+  "errorLog_addAssistMountFailed": { "message": "追加支援を画面に置けませんでした" },
   "ext_name": { "message": "sf-toybox" },
   "ext_description": {
     "message": "Salesforce の設定画面を少し便利にする小さな道具の集まりです。一覧の表示件数を切り替えられます。"

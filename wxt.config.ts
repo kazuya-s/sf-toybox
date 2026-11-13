@@ -5,6 +5,10 @@ import { SALESFORCE_MATCHES } from './src/shared/salesforce-matches';
 
 /** 後から読み込む件数バーの部品（entrypoints/page-size-bar.ts）の入口の名前 */
 const PAGE_SIZE_BAR_ENTRY = 'page-size-bar';
+/** 後から読み込む追加支援の部品（entrypoints/changeset-add-assist.ts）の入口の名前（U4） */
+const CHANGESET_ADD_ASSIST_ENTRY = 'changeset-add-assist';
+/** 入口から import() で読み込むため、ES モジュールで出力する部品 */
+const LAZY_ENTRIES: readonly string[] = [PAGE_SIZE_BAR_ENTRY, CHANGESET_ADD_ASSIST_ENTRY];
 
 /**
  * ビルドの組ごとに、出力した部品（chunk）と、その中に入ったモジュールの一覧を
@@ -49,7 +53,7 @@ export default defineConfig({
     // host_permissions は書かない（U1 は通信しない。security-design.md §2）
     web_accessible_resources: [
       {
-        resources: [`${PAGE_SIZE_BAR_ENTRY}.js`],
+        resources: [`${PAGE_SIZE_BAR_ENTRY}.js`, `${CHANGESET_ADD_ASSIST_ENTRY}.js`],
         matches: [...SALESFORCE_MATCHES],
         use_dynamic_url: true,
       },
@@ -68,10 +72,10 @@ export default defineConfig({
       viteConfig.plugins ??= [];
       viteConfig.plugins.push(moduleListPlugin(groupName, process.cwd()));
 
-      // 件数バーの部品は、入口から import() で読み込めるよう ES モジュールで出力する
-      const isPageSizeBar =
-        entrypoints.length === 1 && entrypoints[0]?.name === PAGE_SIZE_BAR_ENTRY;
-      if (isPageSizeBar && viteConfig.build.lib) {
+      // 件数バーと追加支援の部品は、入口から import() で読み込めるよう ES モジュールで出力する
+      const isLazyEntry =
+        entrypoints.length === 1 && LAZY_ENTRIES.includes(entrypoints[0]?.name ?? '');
+      if (isLazyEntry && viteConfig.build.lib) {
         viteConfig.build.lib.formats = ['es'];
       }
     },

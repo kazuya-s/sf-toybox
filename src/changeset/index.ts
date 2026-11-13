@@ -8,6 +8,7 @@ export {
   listAddCandidates,
   listComponents,
 } from './changeset';
+export { findCandidateTable, readSelectedComponentType } from './page-type';
 export type {
   AddCandidate,
   AddCandidates,

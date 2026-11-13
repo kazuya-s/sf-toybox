@@ -1,0 +1,19 @@
+{
+  "description": "HTML 風の名前・親オブジェクトを持つ架空の候補。文字として表示されることを確かめる（NFR3.1）",
+  "orgHost": "example.my.salesforce.com",
+  "componentType": "CustomField",
+  "candidates": [
+    {
+      "componentKey": "00N000000000011",
+      "name": "Test<script>window.__sftoyboxInjected = true</script>",
+      "parentObject": "Test<img src=x onerror=\"window.__sftoyboxInjected = true\">",
+      "typeLabel": "Custom Field"
+    },
+    {
+      "componentKey": "00N000000000012",
+      "name": "Test<b>Bold</b>",
+      "parentObject": null,
+      "typeLabel": "Custom Field"
+    }
+  ]
+}

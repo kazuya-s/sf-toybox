@@ -3,6 +3,7 @@ export declare const ALLOWED_PERMISSIONS: string[];
 export declare const SALESFORCE_MATCHES: string[];
 export declare const PAGE_SIZE_BAR_ENTRY_NAME: string;
 export declare const CONTENT_ENTRY_NAME: string;
+export declare const CHANGESET_ADD_ASSIST_ENTRY_NAME: string;
 export declare const ALLOWED_DEPENDENCIES: string[];
 export declare const ALLOWED_BUNDLED_PACKAGES: string[];
 

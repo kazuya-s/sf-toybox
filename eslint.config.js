@@ -90,6 +90,37 @@ function u2Rules(globals) {
   };
 }
 
+/** U4 のファイル（追加支援の部品と、その後から読み込む入口） */
+const U4_FILES = ['src/changeset-add-assist/**/*.{ts,tsx}', 'entrypoints/changeset-add-assist.ts'];
+/** addComponent を呼んでよい、ただ 1 つの U4 のファイル（U4 NFR3.3） */
+const U4_STATE_FILE = 'src/changeset-add-assist/state.ts';
+
+/** U2 の追加の関数を、state.ts の外で読み込ませない（U4 NFR3.3） */
+const ADD_COMPONENT_IMPORT = {
+  patterns: [
+    {
+      regex: '(^|/)(salesforce(/index)?|changeset/add-component)$',
+      importNames: ['addComponent'],
+      message:
+        'addComponent は src/changeset-add-assist/state.ts の runAdd だけで使います（NFR3.3）。',
+    },
+  ],
+};
+
+/** U4 のファイルに掛ける規則。state.ts だけ addComponent の読み込みの禁止を外す */
+function u4Rules({ restrictAddComponent }) {
+  return {
+    'no-restricted-globals': ['error', ...NETWORK_GLOBALS, ...STORAGE_GLOBALS],
+    'no-restricted-properties': [
+      'error',
+      ...BASE_RESTRICTED_PROPERTIES,
+      ...NETWORK_PROPERTIES,
+      ...STORAGE_PROPERTIES,
+    ],
+    'no-restricted-imports': restrictAddComponent ? ['error', ADD_COMPONENT_IMPORT] : 'off',
+  };
+}
+
 export default tseslint.config(
   {
     ignores: [
@@ -163,5 +194,15 @@ export default tseslint.config(
     languageOptions: {
       globals: { process: 'readonly', console: 'readonly' },
     },
+  },
+  // U4（変更セットへの追加支援）。U1 の src/**・entrypoints/** のブロックより後ろに置き、
+  // U1・U2 の禁止の定数を合わせて広げて書く（U4 cicd-pipeline.md 段階 2「上書きを防ぐ書き方」）
+  {
+    files: U4_FILES,
+    rules: u4Rules({ restrictAddComponent: true }),
+  },
+  {
+    files: [U4_STATE_FILE],
+    rules: u4Rules({ restrictAddComponent: false }),
   },
 );

@@ -43,7 +43,12 @@ export function validBuild(): FakeBuild {
       ],
       web_accessible_resources: [
         {
-          resources: ['page-size-bar.js', 'chunks/*.js', 'assets/bar.css'],
+          resources: [
+            'page-size-bar.js',
+            'changeset-add-assist.js',
+            'chunks/*.js',
+            'assets/bar.css',
+          ],
           matches: [...SALESFORCE_MATCHES],
           use_dynamic_url: true,
         },
@@ -67,6 +72,14 @@ export function validBuild(): FakeBuild {
         },
         '_react.js': { file: 'chunks/react-abc123.js', name: 'react' },
       },
+      // U4 の追加支援の部品（後から読み込む）
+      'changeset-add-assist': {
+        'virtual:entry?/entrypoints/changeset-add-assist.ts': {
+          file: 'changeset-add-assist.js',
+          name: 'changeset-add-assist',
+          isEntry: true,
+        },
+      },
     },
     moduleLists: {
       salesforce: [
@@ -84,6 +97,7 @@ export function validBuild(): FakeBuild {
         '/*! sf-toybox | license https://example.com/LICENSE */\nconst u = chrome.runtime.getURL("/page-size-bar.js");\nimport(u);\n',
       'page-size-bar.js':
         'import "./chunks/react-abc123.js";\nexport default { mountPageSizeBar() {} };\n',
+      'changeset-add-assist.js': 'export default { mountChangesetAddAssist() {} };\n',
       'chunks/react-abc123.js': 'export const ns = "http://www.w3.org/2000/svg";\n',
       'assets/bar.css': ':host{display:block;background:url("data:image/svg+xml,%3Csvg%3E")}\n',
       'options.html': '<!doctype html><script type="module" src="./chunks/options.js"></script>\n',

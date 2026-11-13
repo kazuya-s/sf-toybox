@@ -4,6 +4,7 @@
  * この入口は React を読み込まない。通信もしない（NFR7.3）。
  */
 import { defineContentScript } from 'wxt/utils/define-content-script';
+import { startChangesetAddAssist } from '../src/changeset-add-assist/load';
 import { registerChangesetViewerHandler } from '../src/changeset-viewer/request-handler';
 import { recordError } from '../src/errors/error-log';
 import { detect } from '../src/page/page-context';
@@ -43,6 +44,9 @@ export async function runSalesforceContent(deps: ContentEntryDeps = {}): Promise
     // U3: ON の送信変更セットの詳細画面だけ、一覧の頼みの受け取りを登録する（例外は中で記録する）
     if (pageInfo) await registerChangesetViewerHandler(pageInfo);
     if (!pageInfo || pageInfo.pageKind === 'other') return;
+    // U4: ON で「追加」画面のときだけ、追加支援の部品を後から読み込む（例外は中で記録する）
+    if (pageInfo.pageKind === 'outboundChangeSetAdd')
+      return await startChangesetAddAssist(pageInfo);
 
     // ON/OFF は画面の読み込み時に 1 回だけ読む（BR1.7）。読めなければ ON（NFR5.2）
     if (!(await isEnabled({ toolId: 'page-size-switcher' }))) return;

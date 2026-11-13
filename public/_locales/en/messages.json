@@ -1,4 +1,48 @@
 {
+  "addAssist_title": { "message": "sf-toybox search" },
+  "addAssist_target": { "message": "Add to: {name}" },
+  "addAssist_loadingName": { "message": "Loading…" },
+  "addAssist_search": { "message": "Search by name" },
+  "addAssist_parent": { "message": "Parent object" },
+  "addAssist_parentAll": { "message": "All" },
+  "addAssist_matchCount": { "message": "Matches: {count}" },
+  "addAssist_selected": { "message": "Selected: {count}" },
+  "addAssist_selectedHidden": { "message": "({hidden} hidden by the filter)" },
+  "addAssist_noMatch": { "message": "No matching components" },
+  "addAssist_selectSomething": { "message": "Select items to add" },
+  "addAssist_add": { "message": "Add {count} selected" },
+  "addAssist_adding": { "message": "Adding… ({done} / {total})" },
+  "addAssist_loadingCandidates": { "message": "Loading candidates…" },
+  "addAssist_partial": { "message": "Some candidates could not be loaded" },
+  "addAssist_loadError": { "message": "Could not load candidates" },
+  "addAssist_retry": { "message": "Try again" },
+  "addAssist_resultTitle": { "message": "Result" },
+  "addAssist_succeeded": { "message": "Added ({count})" },
+  "addAssist_failed": { "message": "Not added ({count})" },
+  "addAssist_untried": { "message": "Not tried ({count})" },
+  "addAssist_unconfirmed": { "message": "Could not confirm the add. Check the change set page" },
+  "addAssist_close": { "message": "Close" },
+  "addAssist_leaveWarning": {
+    "message": "Adding in progress. Leaving stops the rest. Check the change set page for the item being sent"
+  },
+  "addAssist_typeUnreadable": { "message": "Could not read the component type on this page" },
+  "addAssist_aborted": {
+    "message": "Adding was stopped partway. Check the result on the change set page"
+  },
+  "errorLog_addAssistChangeSetFailed": { "message": "Could not load the target change set" },
+  "errorLog_addAssistPreconditionsFailed": { "message": "The check before adding failed" },
+  "errorLog_addAssistCandidatesFailed": { "message": "Could not load the candidates to add" },
+  "errorLog_addAssistCandidatesPartial": {
+    "message": "Some of the candidates to add could not be loaded"
+  },
+  "errorLog_addAssistTypeUnreadable": {
+    "message": "Could not read the component type on the Add page"
+  },
+  "errorLog_addAssistAddFailed": { "message": "Could not add to the change set" },
+  "errorLog_addAssistRenderFailed": { "message": "Could not show the add assistant" },
+  "errorLog_addAssistAborted": { "message": "Adding was stopped partway" },
+  "errorLog_addAssistLoadFailed": { "message": "Could not load the add assistant" },
+  "errorLog_addAssistMountFailed": { "message": "Could not place the add assistant on the page" },
   "ext_name": { "message": "sf-toybox" },
   "ext_description": {
     "message": "A small set of helpers for Salesforce Setup pages, such as switching the number of rows on list pages."
