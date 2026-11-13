@@ -1,0 +1,52 @@
+{
+  "ext_name": { "message": "sf-toybox" },
+  "ext_description": {
+    "message": "Salesforce の設定画面を少し便利にする小さな道具の集まりです。一覧の表示件数を切り替えられます。"
+  },
+  "options_title": { "message": "sf-toybox 設定" },
+  "options_toolsHeading": { "message": "ツールの ON/OFF" },
+  "options_toolsIntro": { "message": "使わないツールを OFF にできます。" },
+  "options_reloadNote": { "message": "変更は Salesforce の画面を再読み込みすると反映されます。" },
+  "options_loadFailed": {
+    "message": "保存した設定を読み込めませんでした。すべてのツールを ON として扱っています。"
+  },
+  "options_saved": { "message": "保存しました" },
+  "options_saveFailed": { "message": "保存できませんでした。もう一度切り替えてください。" },
+  "options_support": { "message": "問い合わせ・不具合報告" },
+  "options_supportPending": { "message": "リポジトリの準備中" },
+  "options_on": { "message": "ON" },
+  "options_off": { "message": "OFF" },
+  "options_recentErrors": { "message": "最近のエラー" },
+  "options_recentErrorsNote": {
+    "message": "拡張機能の中で起きたエラーを、新しいものから最大 {max} 件まで残します。不具合を報告するときは、この内容を書き写してください。"
+  },
+  "options_recentErrorsEmpty": { "message": "記録されたエラーはありません。" },
+  "options_clearErrors": { "message": "消去" },
+  "options_clearFailed": { "message": "消去できませんでした。もう一度押してください。" },
+  "tool_pageSize_name": { "message": "一覧の表示件数の切り替え" },
+  "tool_pageSize_description": {
+    "message": "設定の一覧画面の上に、表示件数を選ぶボタンを出します"
+  },
+  "pageSize_label": { "message": "表示件数" },
+  "pageSize_inputLabel": { "message": "表示件数を入力" },
+  "pageSize_inputPlaceholder": { "message": "件数を入力" },
+  "pageSize_apply": { "message": "表示" },
+  "pageSize_invalid": { "message": "1 以上の整数を入力してください" },
+  "error_sessionExpired": { "message": "Salesforce にログインし直してください" },
+  "error_permissionDenied": { "message": "この操作の権限がありません" },
+  "error_timeout": { "message": "時間内に応答がありませんでした" },
+  "error_network": { "message": "通信できませんでした" },
+  "error_unexpectedResponse": { "message": "Salesforce の応答を読み取れませんでした" },
+  "error_notFound": { "message": "対象の画面ではありません" },
+  "error_changeSetLocked": { "message": "この変更セットには追加できません" },
+  "error_storageFailed": { "message": "保存できませんでした" },
+  "error_unexpected": { "message": "想定外のエラーが起きました" },
+  "errorLog_settingsLoadFailed": { "message": "設定を読み込めませんでした" },
+  "errorLog_settingsInvalid": { "message": "保存された設定の形が読めませんでした" },
+  "errorLog_settingsSaveFailed": { "message": "設定を保存できませんでした" },
+  "errorLog_pageDetectFailed": { "message": "画面の判定に失敗しました" },
+  "errorLog_contentEntryFailed": { "message": "Salesforce の画面での処理に失敗しました" },
+  "errorLog_pageSizeBarLoadFailed": { "message": "件数バーの部品を読み込めませんでした" },
+  "errorLog_pageSizeBarRenderFailed": { "message": "件数バーを表示できませんでした" },
+  "errorLog_unknownMessageKey": { "message": "文言が見つかりませんでした" }
+}

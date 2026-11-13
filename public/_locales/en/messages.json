@@ -1,0 +1,50 @@
+{
+  "ext_name": { "message": "sf-toybox" },
+  "ext_description": {
+    "message": "A small set of helpers for Salesforce Setup pages, such as switching the number of rows on list pages."
+  },
+  "options_title": { "message": "sf-toybox settings" },
+  "options_toolsHeading": { "message": "Tools" },
+  "options_toolsIntro": { "message": "You can turn off tools you do not use." },
+  "options_reloadNote": { "message": "Changes apply when you reload the Salesforce page." },
+  "options_loadFailed": {
+    "message": "Could not load your saved settings. All tools are treated as ON."
+  },
+  "options_saved": { "message": "Saved" },
+  "options_saveFailed": { "message": "Could not save. Please try again." },
+  "options_support": { "message": "Feedback and bug reports" },
+  "options_supportPending": { "message": "Repository coming soon" },
+  "options_on": { "message": "ON" },
+  "options_off": { "message": "OFF" },
+  "options_recentErrors": { "message": "Recent errors" },
+  "options_recentErrorsNote": {
+    "message": "Errors inside the extension are kept here, up to {max} of the most recent. When you report a bug, please copy this list."
+  },
+  "options_recentErrorsEmpty": { "message": "No errors have been recorded." },
+  "options_clearErrors": { "message": "Clear" },
+  "options_clearFailed": { "message": "Could not clear. Please try again." },
+  "tool_pageSize_name": { "message": "List page size switcher" },
+  "tool_pageSize_description": { "message": "Adds page size buttons above Setup list pages" },
+  "pageSize_label": { "message": "Rows per page" },
+  "pageSize_inputLabel": { "message": "Enter rows per page" },
+  "pageSize_inputPlaceholder": { "message": "Enter a number" },
+  "pageSize_apply": { "message": "Show" },
+  "pageSize_invalid": { "message": "Enter a whole number of 1 or more" },
+  "error_sessionExpired": { "message": "Please log in to Salesforce again" },
+  "error_permissionDenied": { "message": "You do not have permission for this action" },
+  "error_timeout": { "message": "The request timed out" },
+  "error_network": { "message": "Could not connect" },
+  "error_unexpectedResponse": { "message": "Could not read the Salesforce response" },
+  "error_notFound": { "message": "This page is not supported" },
+  "error_changeSetLocked": { "message": "Components cannot be added to this change set" },
+  "error_storageFailed": { "message": "Could not save" },
+  "error_unexpected": { "message": "An unexpected error occurred" },
+  "errorLog_settingsLoadFailed": { "message": "Could not load the settings" },
+  "errorLog_settingsInvalid": { "message": "Could not read the saved settings format" },
+  "errorLog_settingsSaveFailed": { "message": "Could not save the settings" },
+  "errorLog_pageDetectFailed": { "message": "Could not identify the page" },
+  "errorLog_contentEntryFailed": { "message": "Processing on the Salesforce page failed" },
+  "errorLog_pageSizeBarLoadFailed": { "message": "Could not load the page size bar" },
+  "errorLog_pageSizeBarRenderFailed": { "message": "Could not show the page size bar" },
+  "errorLog_unknownMessageKey": { "message": "A message text was not found" }
+}

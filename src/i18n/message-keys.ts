@@ -1,0 +1,66 @@
+/**
+ * 文言キーの一覧（frontend-components.md「文言」と security-design.md §5）。
+ * 設計のキー（例: `options.title`）を使い、_locales では `.` を `_` にした名前（例: `options_title`）で持つ。
+ * U3・U4 は自分の文言をこの一覧と _locales の両方に足す。
+ */
+export const MESSAGE_KEYS = [
+  // 拡張機能の名前と説明（manifest の __MSG_ext_name__ など）
+  'ext.name',
+  'ext.description',
+  // 設定画面
+  'options.title',
+  'options.toolsHeading',
+  'options.toolsIntro',
+  'options.reloadNote',
+  'options.loadFailed',
+  'options.saved',
+  'options.saveFailed',
+  'options.support',
+  'options.supportPending',
+  'options.on',
+  'options.off',
+  'options.recentErrors',
+  'options.recentErrorsNote',
+  'options.recentErrorsEmpty',
+  'options.clearErrors',
+  'options.clearFailed',
+  // ツール
+  'tool.pageSize.name',
+  'tool.pageSize.description',
+  // 件数バー
+  'pageSize.label',
+  'pageSize.inputLabel',
+  'pageSize.inputPlaceholder',
+  'pageSize.apply',
+  'pageSize.invalid',
+  // 失敗の種類（messageFor が AppError.kind から選ぶ）
+  'error.sessionExpired',
+  'error.permissionDenied',
+  'error.timeout',
+  'error.network',
+  'error.unexpectedResponse',
+  'error.notFound',
+  'error.changeSetLocked',
+  'error.storageFailed',
+  'error.unexpected',
+  // errorLog に保存する固定の文言の識別子
+  'errorLog.settingsLoadFailed',
+  'errorLog.settingsInvalid',
+  'errorLog.settingsSaveFailed',
+  'errorLog.pageDetectFailed',
+  'errorLog.contentEntryFailed',
+  'errorLog.pageSizeBarLoadFailed',
+  'errorLog.pageSizeBarRenderFailed',
+  'errorLog.unknownMessageKey',
+] as const;
+
+export type MessageKey = (typeof MESSAGE_KEYS)[number];
+
+export function isMessageKey(value: unknown): value is MessageKey {
+  return typeof value === 'string' && (MESSAGE_KEYS as readonly string[]).includes(value);
+}
+
+/** 設計のキーを _locales で使える名前にする（chrome.i18n の名前に `.` は使えない） */
+export function toLocaleKey(key: string): string {
+  return key.replaceAll('.', '_');
+}

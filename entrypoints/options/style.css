@@ -1,0 +1,163 @@
+/* 設定画面の見た目（独自デザイン。mockups.md S1: 最大幅 720px で中央） */
+:root {
+  --color-text: #181818;
+  --color-muted: #5c5c5c;
+  --color-border: #c9c9c9;
+  --color-surface: #ffffff;
+  --color-background: #f3f3f3;
+  --color-accent: #0176d3;
+  --color-warning-bg: #fef1e6;
+  --color-warning-border: #dd7a01;
+  --color-error: #ba0517;
+  --color-success: #2e844a;
+  color-scheme: light;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--color-background);
+  color: var(--color-text);
+  font-family:
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    'Hiragino Sans',
+    'Noto Sans JP',
+    sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.options {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 24px 16px 48px;
+}
+
+.options__header h1 {
+  margin: 0 0 16px;
+  font-size: 20px;
+}
+
+.panel {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.panel h2 {
+  margin: 0 0 8px;
+  font-size: 16px;
+}
+
+.note {
+  margin: 0 0 12px;
+  color: var(--color-muted);
+}
+
+.banner {
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin-bottom: 16px;
+}
+
+.banner--warning {
+  background: var(--color-warning-bg);
+  border: 1px solid var(--color-warning-border);
+}
+
+.tool-toggle-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.tool-toggle {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 0;
+  border-top: 1px solid var(--color-border);
+}
+
+.tool-toggle:first-child {
+  border-top: none;
+}
+
+.tool-toggle__name {
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.tool-toggle__description {
+  margin: 4px 0 0;
+  color: var(--color-muted);
+}
+
+.tool-toggle__switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.tool-toggle__switch input {
+  width: 20px;
+  height: 20px;
+  accent-color: var(--color-accent);
+}
+
+.tool-toggle__state {
+  min-width: 2.5em;
+  font-weight: 700;
+}
+
+.saved-notice {
+  min-height: 1.5em;
+  margin: 8px 0 0;
+  color: var(--color-success);
+}
+
+.message--error {
+  margin: 8px 0 0;
+  color: var(--color-error);
+}
+
+.recent-errors {
+  margin: 0 0 12px;
+  padding-left: 20px;
+  font-size: 13px;
+}
+
+.recent-errors code {
+  font-size: 12px;
+}
+
+.button {
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  background: var(--color-surface);
+  padding: 4px 16px;
+  font: inherit;
+  cursor: pointer;
+}
+
+.button:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+
+.options__footer {
+  color: var(--color-muted);
+}
+
+.options__footer a {
+  color: var(--color-accent);
+}

@@ -1,0 +1,66 @@
+# CI（cicd-pipeline.md 段階 1〜7）
+# develop と main への push と、両方へのプルリクエストで動く。
+# 段階 1〜6 がすべて通ったときだけ zip を作り、30 日保存する。ストアへの自動提出はしない。
+name: ci
+
+on:
+  push:
+    branches: [develop, main]
+  pull_request:
+    branches: [develop, main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: lint, build, test, manifest, zip
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      # 段階 1: 準備
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      # 段階 2: 静的チェック（ESLint と Prettier）
+      - name: Lint
+        run: npm run lint
+
+      # 段階 3: ビルド（.output/chrome-mv3/ と Vite の部品の一覧）
+      - name: Build
+        run: npm run build
+
+      # 段階 4: テスト（行のカバレッジ 80% 未満なら失敗）
+      - name: Test with coverage
+        run: npm run test -- --coverage
+
+      # 段階 5・6: manifest・公開するファイル・外部 URL・入口の React の確認
+      - name: Check manifest
+        run: npm run check:manifest
+
+      # 段階 7: zip を作り、成果物として 30 日保存する
+      - name: Zip
+        run: npx wxt zip
+
+      - name: Upload extension zip
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: sf-toybox-chrome-${{ github.sha }}
+          path: .output/*.zip
+          if-no-files-found: error
+          retention-days: 30

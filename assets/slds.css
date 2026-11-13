@@ -1,0 +1,44 @@
+/*
+ * 件数バーに当てるスタイル（BR4.2、NFR3.1、security-design.md §3）。
+ * SLDS（@salesforce-ux/design-system）のうち、件数バーで使う部品の CSS だけを取り込み、
+ * ビルドで拡張機能に同梱する。外部の配信元からは読み込まない。
+ * Shadow DOM の中に置くため、src/page-size/mount.tsx が :root を :host に置き換えて使う。
+ */
+@import '@salesforce-ux/design-system/css/common/index.css';
+@import '@salesforce-ux/design-system/css/buttons/base/index.css';
+@import '@salesforce-ux/design-system/css/button-groups/base/index.css';
+@import '@salesforce-ux/design-system/css/form-element/base/index.css';
+@import '@salesforce-ux/design-system/css/input/base/index.css';
+
+/* Salesforce の画面から受け継ぐ値を断ち、件数バーの見た目を固定する */
+:root {
+  all: initial;
+  display: block;
+  font-family: var(--slds-g-font-family-base, system-ui, sans-serif);
+  font-size: 0.8125rem;
+  color: var(--slds-g-color-on-surface-2, #2e2e2e);
+}
+
+.sftoybox-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 0.5rem 0.75rem;
+  padding: 0.5rem 0;
+}
+
+.sftoybox-bar__label {
+  line-height: 2rem;
+  font-weight: 700;
+}
+
+.sftoybox-bar__custom {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.25rem;
+  margin: 0;
+}
+
+.sftoybox-bar__custom .slds-input {
+  width: 8rem;
+}

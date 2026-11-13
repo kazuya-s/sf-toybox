@@ -1,0 +1,11 @@
+# 作者と AI-DLC の記録（整形の対象にしない）
+aidlc/
+.claude/
+.gitignore
+
+# 依存とビルド・テストの出力
+node_modules/
+.output/
+.wxt/
+coverage/
+package-lock.json
