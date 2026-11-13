@@ -1,0 +1,52 @@
+<!doctype html>
+<html>
+  <head>
+    <title>変更セットに追加</title>
+  </head>
+  <body>
+    <form
+      id="editPage"
+      name="editPage"
+      method="post"
+      action="/p/mfpkg/AddToPackageFromChangeMgmtUi"
+    >
+      <input type="hidden" name="id" value="test-changeset" />
+      <input type="hidden" name="_CONFIRMATIONTOKEN" value="test-token" />
+      <input type="hidden" name="viewState" value="test-viewstate" />
+      <label
+        >コンポーネントの種類:
+        <select name="entityType">
+          <option value="ApexClass">Apex クラス</option>
+          <option value="CustomField" selected>カスタム項目</option>
+        </select>
+      </label>
+      <input type="submit" class="btn" name="save" value="変更セットに追加" />
+      <input type="submit" class="btn" name="cancel" value="キャンセル" />
+      <table class="list">
+        <tr class="headerRow">
+          <th>操作</th>
+          <th>名前</th>
+          <th>親オブジェクト</th>
+        </tr>
+        <tr class="dataRow">
+          <td><input type="checkbox" name="ids" value="00N000000000001" /></td>
+          <td>Field_A__c</td>
+          <td>Account</td>
+        </tr>
+        <tr class="dataRow">
+          <td><input type="checkbox" name="ids" value="00N000000000002" /></td>
+          <td>Field_B__c</td>
+          <td></td>
+        </tr>
+      </table>
+      <div class="paginator">
+        <span class="totalCount">3</span>
+        <a
+          class="next"
+          href="/p/mfpkg/AddToPackageFromChangeMgmtUi?id=0A2000000000001&amp;entityType=CustomField&amp;rowsperpage=1000&amp;lsr=2"
+          >次のページ</a
+        >
+      </div>
+    </form>
+  </body>
+</html>

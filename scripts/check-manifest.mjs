@@ -1,5 +1,5 @@
 // ビルドした拡張機能の manifest と公開するファイルを確かめる（cicd-pipeline.md 段階 5・6）。
-// 使い方: node scripts/check-manifest.mjs [--out-dir .output/chrome-mv3] [--permissions-doc docs/store/permissions.md]
+// 使い方: node scripts/check-manifest.mjs [--out-dir .output/chrome-mv3] [--permissions-doc docs/store/permissions.md] [--package-json package.json]
 // U2 以降で権限を足すときは、下の許可の一覧と docs/store/permissions.md を同時に直す。
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { extname, join, relative, resolve } from 'node:path';
@@ -18,6 +18,30 @@ export const SALESFORCE_MATCHES = [
 /** Vite の部品の一覧での、件数バーの部品と入口の名前 */
 export const PAGE_SIZE_BAR_ENTRY_NAME = 'page-size-bar';
 export const CONTENT_ENTRY_NAME = 'salesforce.content';
+
+/** package.json の実行時の依存として許す一覧（U2 security-design.md §9、NFR3.4） */
+export const ALLOWED_DEPENDENCIES = ['react', 'react-dom', '@salesforce-ux/design-system'];
+
+/** 調べる package.json の欄。devDependencies はビルドに入らないので対象にしない */
+const DEPENDENCY_FIELDS = ['dependencies', 'optionalDependencies', 'peerDependencies'];
+
+/**
+ * ビルドに入ってよい node_modules のパッケージ（U2 cicd-pipeline.md 段階 5）。
+ * 決めた依存とその依存（react・react-dom・scheduler・@salesforce-ux）に加え、
+ * ビルドの道具 WXT（team.md「Code Style」）が入口に入れる実行時の部品（wxt、@wxt-dev/browser）。
+ */
+export const ALLOWED_BUNDLED_PACKAGES = [
+  'react',
+  'react-dom',
+  'scheduler',
+  '@salesforce-ux/*',
+  'wxt',
+  '@wxt-dev/browser',
+];
+
+/** ビルドに入ってよい、リポジトリの中のフォルダとファイル */
+const ALLOWED_SOURCE_DIRS = ['src/', 'entrypoints/', 'assets/', 'public/'];
+const ALLOWED_ROOT_FILES = ['package.json'];
 
 /** 入口に入っていてはいけないモジュール（performance-design.md §1） */
 const FORBIDDEN_ENTRY_MODULES = ['node_modules/react/', 'node_modules/react-dom/'];
@@ -235,12 +259,60 @@ function checkEntryHasNoReact(outDir, viteManifest, errors) {
   }
 }
 
+/** package.json の実行時の依存が、決めた一覧から増えていないこと（NFR3.4） */
+function checkDependencies(packageJson, errors) {
+  for (const field of DEPENDENCY_FIELDS) {
+    const names = Object.keys(packageJson[field] ?? {});
+    const extra = names.filter((name) => !ALLOWED_DEPENDENCIES.includes(name));
+    if (extra.length > 0) {
+      errors.push(`package.json の ${field} に決めた一覧にない依存があります: ${extra.join(', ')}`);
+    }
+  }
+}
+
+/** モジュールの ID から、いちばん内側の node_modules のパッケージ名を取り出す */
+function packageOf(id) {
+  const marker = 'node_modules/';
+  const index = id.lastIndexOf(marker);
+  if (index < 0) return null;
+  const parts = id.slice(index + marker.length).split('/');
+  return parts[0]?.startsWith('@') ? `${parts[0]}/${parts[1] ?? ''}` : (parts[0] ?? null);
+}
+
+/** @param {string} name */
+function isAllowedPackage(name) {
+  return ALLOWED_BUNDLED_PACKAGES.some((allowed) =>
+    allowed.endsWith('/*') ? name.startsWith(allowed.slice(0, -1)) : name === allowed,
+  );
+}
+
+/** @param {string} id */
+function isAllowedModule(id) {
+  // \0 で始まるのは、バンドラーが作る仮のモジュール（ファイルではない）
+  if (id.startsWith('\u0000')) return true;
+  const name = packageOf(id);
+  if (name !== null) return id.startsWith('node_modules/') && isAllowedPackage(name);
+  return ALLOWED_ROOT_FILES.includes(id) || ALLOWED_SOURCE_DIRS.some((dir) => id.startsWith(dir));
+}
+
+/** ビルドに入ったモジュールが、決めた一覧の中だけであること（U2 cicd-pipeline.md 段階 5） */
+function checkBundledModules(outDir, errors) {
+  const modules = loadModuleLists(outDir).flatMap((chunk) => asStringArray(chunk.modules));
+  const outside = [...new Set(modules.filter((id) => !isAllowedModule(id)))];
+  if (outside.length > 0) {
+    errors.push(
+      `ビルドに決めた一覧の外のモジュールが入っています: ${outside.slice(0, 5).join(', ')}`,
+    );
+  }
+}
+
 /**
  * ビルドの結果を確かめ、見つかった問題の一覧を返す。
- * @param {{ outDir: string, permissionsDoc: string }} options
+ * packageJson を渡したときは、package.json の依存も確かめる。
+ * @param {{ outDir: string, permissionsDoc: string, packageJson?: string }} options
  * @returns {{ errors: string[] }}
  */
-export function checkBuild({ outDir, permissionsDoc }) {
+export function checkBuild({ outDir, permissionsDoc, packageJson }) {
   const errors = [];
   const manifestPath = join(outDir, 'manifest.json');
   if (!existsSync(manifestPath)) {
@@ -256,18 +328,33 @@ export function checkBuild({ outDir, permissionsDoc }) {
   checkWebAccessibleResources(manifest, viteManifest, errors);
   checkExternalUrls(outDir, errors);
   checkEntryHasNoReact(outDir, viteManifest, errors);
+  checkBundledModules(outDir, errors);
+  if (packageJson !== undefined) {
+    if (existsSync(packageJson)) checkDependencies(readJson(packageJson), errors);
+    else errors.push(`${packageJson} がありません`);
+  }
   return { errors };
 }
 
 /** @param {string[]} argv */
 function parseArgs(argv) {
-  const options = { outDir: '.output/chrome-mv3', permissionsDoc: 'docs/store/permissions.md' };
+  const options = {
+    outDir: '.output/chrome-mv3',
+    permissionsDoc: 'docs/store/permissions.md',
+    packageJson: 'package.json',
+  };
   for (let index = 0; index < argv.length; index += 1) {
     if (argv[index] === '--out-dir') options.outDir = argv[++index] ?? options.outDir;
     else if (argv[index] === '--permissions-doc')
       options.permissionsDoc = argv[++index] ?? options.permissionsDoc;
+    else if (argv[index] === '--package-json')
+      options.packageJson = argv[++index] ?? options.packageJson;
   }
-  return { outDir: resolve(options.outDir), permissionsDoc: resolve(options.permissionsDoc) };
+  return {
+    outDir: resolve(options.outDir),
+    permissionsDoc: resolve(options.permissionsDoc),
+    packageJson: resolve(options.packageJson),
+  };
 }
 
 const isCli = process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url);

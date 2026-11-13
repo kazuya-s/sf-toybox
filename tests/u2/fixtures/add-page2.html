@@ -1,0 +1,43 @@
+<!doctype html>
+<html>
+  <head>
+    <title>変更セットに追加</title>
+  </head>
+  <body>
+    <form
+      id="editPage"
+      name="editPage"
+      method="post"
+      action="/p/mfpkg/AddToPackageFromChangeMgmtUi"
+    >
+      <input type="hidden" name="id" value="test-changeset" />
+      <input type="hidden" name="_CONFIRMATIONTOKEN" value="test-token-2" />
+      <input type="hidden" name="viewState" value="test-viewstate-2" />
+      <label
+        >コンポーネントの種類:
+        <select name="entityType">
+          <option value="ApexClass">Apex クラス</option>
+          <option value="CustomField" selected>カスタム項目</option>
+        </select>
+      </label>
+      <input type="submit" class="btn" name="save" value="変更セットに追加" />
+      <input type="submit" class="btn" name="cancel" value="キャンセル" />
+      <table class="list">
+        <tr class="headerRow">
+          <th>操作</th>
+          <th>名前</th>
+          <th>親オブジェクト</th>
+        </tr>
+        <tr class="dataRow">
+          <td><input type="checkbox" name="ids" value="00N000000000003" /></td>
+          <td>Field_C__c</td>
+          <td>Test__c</td>
+        </tr>
+      </table>
+      <div class="paginator">
+        <span class="totalCount">3</span>
+        <span class="next">次のページ</span>
+      </div>
+    </form>
+  </body>
+</html>

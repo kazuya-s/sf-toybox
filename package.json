@@ -12,7 +12,8 @@
     "build": "wxt build",
     "test": "vitest run",
     "zip": "wxt zip",
-    "check:manifest": "node scripts/check-manifest.mjs"
+    "check:manifest": "node scripts/check-manifest.mjs",
+    "check:fixtures": "node scripts/check-fixtures.mjs"
   },
   "dependencies": {
     "@salesforce-ux/design-system": "^2.264.3",

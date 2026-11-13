@@ -45,6 +45,10 @@ jobs:
       - name: Build
         run: npm run build
 
+      # 段階 4 の前: テストの HTML の例に組織のデータがないことの確認（U2）
+      - name: Check fixtures
+        run: npm run check:fixtures
+
       # 段階 4: テスト（行のカバレッジ 80% 未満なら失敗）
       - name: Test with coverage
         run: npm run test -- --coverage
