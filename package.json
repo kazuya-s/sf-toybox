@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "description": "A Chrome extension of small tools that make Salesforce setup pages a little handier",
   "private": true,
+  "license": "MIT",
   "type": "module",
   "bugs": {
     "url": ""

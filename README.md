@@ -90,3 +90,7 @@ Daily work goes to `develop`. Releases are merged from `develop` into `main`.
 ## Reporting a problem
 
 Open an issue using the bug report template. Copy the "Recent errors" list from the options page into the issue. Please do not include your org name, URLs, or record data.
+
+## License
+
+[MIT](LICENSE)
