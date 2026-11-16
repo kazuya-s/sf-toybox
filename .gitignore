@@ -29,3 +29,36 @@ node_modules/
 .output/
 .wxt/
 coverage/
+
+# AI-DLC の作業用コピー（ワークツリー）と一時ファイル
+.aidlc/
+aidlc/.aidlc-subagent-inflight
+
+# ログイン情報・鍵・秘密の値（どこにあっても入れない）
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+*.crx
+*.keystore
+id_rsa*
+id_ed25519*
+.npmrc
+credentials*.json
+secrets*.json
+*.secret
+
+# Chrome ウェブストアに出した zip や手元の控え
+*.zip
+
+# エディタと OS が作るファイル
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.log
+npm-debug.log*
