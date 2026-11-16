@@ -1,4 +1,4 @@
-/** 絞り込みで 0 件のときの案内と「絞り込みを解除」（BR2.6） */
+/** Notice for zero filtered rows and "Clear filter" (BR2.6) */
 import { t } from '../../i18n/presentation';
 
 export type FilteredEmptyProps = { onClear: () => void };

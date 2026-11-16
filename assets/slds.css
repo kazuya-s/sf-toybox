@@ -1,8 +1,8 @@
 /*
- * 件数バーに当てるスタイル（BR4.2、NFR3.1、security-design.md §3）。
- * SLDS（@salesforce-ux/design-system）のうち、件数バーで使う部品の CSS だけを取り込み、
- * ビルドで拡張機能に同梱する。外部の配信元からは読み込まない。
- * Shadow DOM の中に置くため、src/page-size/mount.tsx が :root を :host に置き換えて使う。
+ * Styles for the page-size bar (BR4.2, NFR3.1, security-design.md §3).
+ * Imports only the SLDS (@salesforce-ux/design-system) CSS for the components the bar uses,
+ * bundled into the extension at build time. Nothing is loaded from an external CDN.
+ * Because it lives inside a Shadow DOM, src/page-size/mount.tsx rewrites :root to :host.
  */
 @import '@salesforce-ux/design-system/css/common/index.css';
 @import '@salesforce-ux/design-system/css/buttons/base/index.css';
@@ -10,7 +10,7 @@
 @import '@salesforce-ux/design-system/css/form-element/base/index.css';
 @import '@salesforce-ux/design-system/css/input/base/index.css';
 
-/* Salesforce の画面から受け継ぐ値を断ち、件数バーの見た目を固定する */
+/* Cut off values inherited from the Salesforce page and pin the bar's look */
 :root {
   all: initial;
   display: block;

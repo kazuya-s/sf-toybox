@@ -1,13 +1,13 @@
 /**
- * 候補の読み込みの様子: 読み込み中、一部の失敗、読み込みの失敗と「もう一度試す」、種類が読めない
- * （frontend-components.md、BR1.3、BR1.4、NFR7.3）。
+ * Candidate loading status: loading, partial failure, load failure with "Try again", unreadable type
+ * (frontend-components.md, BR1.3, BR1.4, NFR7.3).
  */
 import { t } from '../../i18n/presentation';
 import type { CandidatesStatus } from '../types';
 
 export type LoadStatusProps = {
   status: CandidatesStatus;
-  /** 候補の「もう一度試す」を出すか（ログイン切れのときは出さない） */
+  /** Whether to show "Try again" for candidates (hidden on session expiry) */
   canRetry: boolean;
   retryDisabled: boolean;
   onRetry: () => void;

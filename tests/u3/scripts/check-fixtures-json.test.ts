@@ -6,7 +6,7 @@ import {
   checkJsonFixtures,
 } from '../../../scripts/check-fixtures.mjs';
 
-/** 架空の値だけの例（cicd-pipeline.md「テストのデータ」） */
+/** Example with fake values only (cicd-pipeline.md "Test data") */
 function fixture(overrides: Record<string, unknown> = {}): string {
   return JSON.stringify({
     changeSet: { changeSetId: '0A2000000000001', name: 'TestChangeSet', status: 'open' },
@@ -19,8 +19,8 @@ function fixture(overrides: Record<string, unknown> = {}): string {
   });
 }
 
-describe('テストの JSON のデータの確認（check-fixtures の JSON の調べ）', () => {
-  it('架空の値だけなら通り、リポジトリの例もすべて通る（ないフォルダは飛ばす）', () => {
+describe('Test JSON data check (JSON checks in check-fixtures)', () => {
+  it('passes with fake values only, and every repository example passes (missing folders skipped)', () => {
     expect(checkJsonFixtureText('valid.json', fixture())).toEqual([]);
 
     const dirs = JSON_FIXTURE_DIRS.map((dir) => resolve(process.cwd(), dir));
@@ -30,37 +30,39 @@ describe('テストの JSON のデータの確認（check-fixtures の JSON の�
     expect(JSON_FIXTURE_DIRS).toEqual(['tests/u3/fixtures', 'tests/u4/fixtures']);
   });
 
-  it('example.my.salesforce.com 以外の Salesforce のホスト名があると失敗する', () => {
+  it('fails on a Salesforce host name other than example.my.salesforce.com', () => {
     expect(
       checkJsonFixtureText('x.json', fixture({ link: 'https://acme.my.salesforce.com/' })),
-    ).toEqual(['x.json: example.my.salesforce.com 以外の Salesforce のホスト名があります（1 件）']);
+    ).toEqual(['x.json: has a Salesforce host name other than example.my.salesforce.com (1)']);
   });
 
-  it('メールアドレスと 32 文字以上の英数字の並びがあると失敗する', () => {
+  it('fails on an email address and an alphanumeric run of 32 or more characters', () => {
     expect(checkJsonFixtureText('x.json', fixture({ owner: 'someone@example.org' }))).toEqual([
-      'x.json: メールアドレスがあります（1 件）',
+      'x.json: has an email address (1)',
     ]);
     expect(
       checkJsonFixtureText('x.json', fixture({ token: 'a1B2c3D4e5F6g7H8i9J0k1L2m3N4o5P6q7' })),
-    ).toEqual(['x.json: 32 文字以上の英数字の並びがあります（1 件）']);
+    ).toEqual(['x.json: has an alphanumeric run of 32 or more characters (1)']);
   });
 
-  it('0 の並びでない 15 文字か 18 文字の ID があると失敗する', () => {
+  it('fails on a 15- or 18-character ID that is not all zeros', () => {
     const changeSet = { changeSetId: '0A23k000000XyZ1', name: 'TestChangeSet', status: 'open' };
     expect(checkJsonFixtureText('x.json', fixture({ changeSet }))).toEqual([
-      'x.json: 0 の並びでない 15 文字か 18 文字の ID があります（1 件）',
+      'x.json: has a 15- or 18-character ID that is not all zeros (1)',
     ]);
   });
 
-  it('名前の欄が Test で始まらないと失敗する（null は除く。キーは調べない）。JSON でないものも失敗', () => {
+  it('fails when a name field does not start with Test (null excluded; keys not checked); non-JSON also fails', () => {
     const components = [
       { componentType: 'Apex Class', apiName: 'RealClass', parentObject: null },
       { componentType: 'Custom Field', apiName: 'Test__c', parentObject: 'Account' },
     ];
     expect(checkJsonFixtureText('x.json', fixture({ components }))).toEqual([
-      'x.json: 名前の欄（name・apiName・parentObject）に Test で始まらない値があります（2 件）',
+      'x.json: has a value not starting with Test in a name field (name, apiName, parentObject) (2)',
     ]);
     expect(checkJsonFixtureText('x.json', fixture({ Account: 'TestValue' }))).toEqual([]);
-    expect(checkJsonFixtureText('x.json', '{ broken')).toEqual(['x.json: JSON として読めません']);
+    expect(checkJsonFixtureText('x.json', '{ broken')).toEqual([
+      'x.json: cannot be parsed as JSON',
+    ]);
   });
 });

@@ -18,17 +18,17 @@ function formatTime(at: string): string {
   }
 }
 
-/** 文言キーが一覧にないときは、キーをそのまま出す（ここで記録すると記録が増え続けるため記録しない） */
+/** Shows the key as is when it is not in the list (not logged here, or the log would keep growing) */
 function describe(entry: ErrorLogEntry): string {
   return isMessageKey(entry.messageKey) ? t(entry.messageKey) : entry.messageKey;
 }
 
 export type RecentErrorsProps = {
-  /** 値が変わるたびに読み直す */
+  /** Reloads whenever this value changes */
   refreshKey?: number;
 };
 
-/** 最近のエラーの一覧と「消去」（security-design.md §5、monitoring-design.md） */
+/** List of recent errors and "Clear" (security-design.md §5, monitoring-design.md) */
 export function RecentErrors({ refreshKey = 0 }: RecentErrorsProps) {
   const [entries, setEntries] = useState<ErrorLogEntry[]>([]);
   const [hasClearFailed, setHasClearFailed] = useState(false);

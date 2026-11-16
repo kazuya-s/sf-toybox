@@ -4,33 +4,33 @@ import type { MessageKey } from '../../../src/i18n/message-keys';
 import { APP_ERROR_KINDS } from '../../../src/shared/result';
 import { readLocaleMessages, setUiLanguage } from '../helpers/chrome-mock';
 
-describe('表示の文言（presentation、C2）', () => {
+describe('UI messages (presentation, C2)', () => {
   beforeEach(() => {
     vi.spyOn(console, 'error').mockImplementation(() => undefined);
   });
 
-  it('ブラウザの言語が日本語なら日本語の文言（BR4.1、AC1.1.8）', () => {
+  it('uses Japanese messages when the browser language is Japanese (BR4.1, AC1.1.8)', () => {
     setUiLanguage('ja');
 
     expect(t('options.title')).toBe('sf-toybox 設定');
     expect(t('pageSize.invalid')).toBe('1 以上の整数を入力してください');
   });
 
-  it.each(['en-US', 'fr'])('それ以外の言語（%s）なら英語の文言（BR4.1）', (language) => {
+  it.each(['en-US', 'fr'])('uses English messages for other languages (%s) (BR4.1)', (language) => {
     setUiLanguage(language);
 
     expect(t('options.title')).toBe('sf-toybox settings');
     expect(t('pageSize.apply')).toBe('Show');
   });
 
-  it('パラメータを差し込み、知らない名前の差し込み先はそのまま残す', () => {
+  it('fills in parameters and leaves unknown placeholders as is', () => {
     setUiLanguage('ja');
 
     expect(t('options.recentErrorsNote', { max: 20 })).toContain('最大 20 件');
     expect(t('options.recentErrorsNote', { other: 1 })).toContain('{max}');
   });
 
-  it('messageFor は全 kind と unexpected を文言にする', () => {
+  it('messageFor turns every kind and unexpected into a message', () => {
     setUiLanguage('en');
 
     for (const kind of [...APP_ERROR_KINDS, 'unexpected'] as const) {
@@ -40,7 +40,7 @@ describe('表示の文言（presentation、C2）', () => {
     expect(messageFor({ kind: 'storageFailed' })).toBe('Could not save');
   });
 
-  it('知らないキーのときは、キーを返したうえでエラーを記録する', () => {
+  it('returns the key itself for an unknown key and logs an error', () => {
     const unknownKey = 'options.doesNotExist' as MessageKey;
 
     expect(t(unknownKey)).toBe(unknownKey);

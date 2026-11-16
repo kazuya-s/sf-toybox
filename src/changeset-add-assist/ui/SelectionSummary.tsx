@@ -1,5 +1,5 @@
 /**
- * 「選択中: n 件（うち k 件は絞り込みで非表示）」（frontend-components.md、BR2.3）。
+ * "Selected: n (k hidden by the filter)" (frontend-components.md, BR2.3).
  */
 import { t } from '../../i18n/presentation';
 

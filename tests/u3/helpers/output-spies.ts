@@ -1,6 +1,6 @@
 /**
- * クリップボードと保存の差し替え（unit-test-instructions.md「模擬と差し替えの決まり」）。
- * navigator.clipboard.writeText と URL.createObjectURL を差し替え、呼ばれた回数と中身を記録する。
+ * Clipboard and download stubs (unit-test-instructions.md "Mock and stub rules").
+ * Replaces navigator.clipboard.writeText and URL.createObjectURL and records call counts and contents.
  */
 import { vi, type MockInstance } from 'vitest';
 
@@ -9,9 +9,9 @@ export type OutputSpies = {
   createObjectURL: ReturnType<typeof vi.fn<(blob: Blob) => string>>;
   revokeObjectURL: ReturnType<typeof vi.fn<(url: string) => void>>;
   click: MockInstance<() => void>;
-  /** 保存しようとしたファイル名 */
+  /** File name that was to be saved */
   downloads: string[];
-  /** 保存しようとした Blob */
+  /** Blob that was to be saved */
   blobs: Blob[];
 };
 
@@ -42,8 +42,8 @@ export function installOutputSpies(): OutputSpies {
 }
 
 /**
- * user-event の setup() は navigator.clipboard を自前のものに置き換えるため、
- * setup() のあとで記録用の writeText を付け直す。
+ * user-event's setup() replaces navigator.clipboard with its own,
+ * so the recording writeText is reattached after setup().
  */
 export function reattachClipboard(spies: OutputSpies): void {
   Object.defineProperty(navigator, 'clipboard', {

@@ -4,7 +4,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { checkBuild } from '../../../scripts/check-manifest.mjs';
 import { validBuild, writeBuild, type FakeBuild } from '../../u1/fixtures/build-output';
 
-/** 一時的なフォルダはプロジェクトの中（node_modules/.cache）に作り、テストのあとで消す */
+/** Temporary folders are created inside the project (node_modules/.cache) and removed after the tests */
 const TEMP_PARENT = resolve(process.cwd(), 'node_modules/.cache/sftoybox-check-manifest-u2');
 
 type PackageJson = Record<string, Record<string, string>>;
@@ -20,7 +20,7 @@ function validPackageJson(): PackageJson {
   };
 }
 
-/** 実際のビルドに入る形のモジュールを足した、偽のビルド結果 */
+/** Fake build output with modules shaped like a real build */
 function validU2Build(): FakeBuild {
   const build = validBuild();
   build.moduleLists.salesforce?.[0]?.modules.push(
@@ -50,7 +50,7 @@ function validU2Build(): FakeBuild {
   return build;
 }
 
-describe('manifest の確認スクリプトに U2 で足した確認（依存とモジュールの一覧、NFR3.4）', () => {
+describe('Checks U2 added to the manifest script (dependencies and module lists, NFR3.4)', () => {
   let root: string;
 
   beforeEach(() => {
@@ -68,36 +68,36 @@ describe('manifest の確認スクリプトに U2 で足した確認（依存と
     return checkBuild({ ...writeBuild(root, build), packageJson: packageJsonPath }).errors;
   }
 
-  it('決めた依存と、決めた一覧の中のモジュールだけなら通る', () => {
+  it('passes with only the chosen dependencies and listed modules', () => {
     expect(run(validU2Build(), validPackageJson())).toEqual([]);
   });
 
-  it('dependencies や optionalDependencies に 1 つ足すと失敗する', () => {
+  it('fails when one is added to dependencies or optionalDependencies', () => {
     const packageJson = validPackageJson();
     packageJson.dependencies = { ...packageJson.dependencies, lodash: '^4.0.0' };
     packageJson.optionalDependencies = { axios: '^1.0.0' };
 
     expect(run(validU2Build(), packageJson)).toEqual([
-      'package.json の dependencies に決めた一覧にない依存があります: lodash',
-      'package.json の optionalDependencies に決めた一覧にない依存があります: axios',
+      'package.json dependencies has dependencies outside the chosen list: lodash',
+      'package.json optionalDependencies has dependencies outside the chosen list: axios',
     ]);
   });
 
-  it('peerDependencies に足しても失敗し、package.json がなければ失敗する', () => {
+  it('fails when added to peerDependencies, and when package.json is missing', () => {
     const packageJson = validPackageJson();
     packageJson.peerDependencies = { jquery: '^3.0.0' };
 
     expect(run(validU2Build(), packageJson)).toEqual([
-      'package.json の peerDependencies に決めた一覧にない依存があります: jquery',
+      'package.json peerDependencies has dependencies outside the chosen list: jquery',
     ]);
     const missing = checkBuild({
       ...writeBuild(root, validU2Build()),
       packageJson: join(root, 'missing.json'),
     }).errors;
-    expect(missing).toEqual([expect.stringContaining('missing.json がありません')]);
+    expect(missing).toEqual([expect.stringContaining('missing.json is missing')]);
   });
 
-  it('一覧にないモジュール（ほかのパッケージ、入れ子の node_modules、リポジトリの外）が入ると失敗する', () => {
+  it('fails when unlisted modules (other packages, nested node_modules, outside the repo) are bundled', () => {
     const build = validU2Build();
     build.moduleLists.salesforce?.[0]?.modules.push(
       'node_modules/lodash/lodash.js',
@@ -109,7 +109,7 @@ describe('manifest の確認スクリプトに U2 で足した確認（依存と
     const errors = run(build, validPackageJson());
 
     expect(errors).toHaveLength(1);
-    expect(errors[0]).toContain('ビルドに決めた一覧の外のモジュールが入っています');
+    expect(errors[0]).toContain('The build contains modules outside the chosen list');
     for (const id of ['lodash', 'left-pad', '../outside/secret.ts', 'tests/u2/helpers']) {
       expect(errors[0]).toContain(id);
     }

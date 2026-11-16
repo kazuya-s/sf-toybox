@@ -1,6 +1,6 @@
 /**
- * 一覧が読めたとき（default / empty / partial / filtered-empty）の表示と出力（BR2.1〜BR3.8）。
- * 出力の関数（copyRows・saveCsv）は、コピーと CSV のボタンの onClick の中からだけ呼ぶ（NFR1.2）。
+ * View and output once the list is loaded (default / empty / partial / filtered-empty) (BR2.1-BR3.8).
+ * Output functions (copyRows, saveCsv) are called only from the Copy and CSV buttons' onClick (NFR1.2).
  */
 import { useEffect, useMemo, useRef } from 'react';
 import { recordError } from '../../errors/error-log';

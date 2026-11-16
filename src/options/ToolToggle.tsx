@@ -8,7 +8,7 @@ export type ToolToggleProps = {
   onToggle: (toolId: ToolId, enabled: boolean) => void;
 };
 
-/** ツール 1 つの名前・説明・切り替え（BR1.5、BR1.8） */
+/** Name, description and toggle for one tool (BR1.5, BR1.8) */
 export function ToolToggle({ definition, enabled, onToggle }: ToolToggleProps) {
   const inputId = useId();
   const descriptionId = useId();

@@ -1,5 +1,7 @@
 # 手の確認 — U3 変更セットの中身一覧
 
+English: [manual-check-u3.en.md](manual-check-u3.en.md)
+
 公開の前に、開発者組織か Sandbox で手で確かめる手順です（U3 infrastructure-design/cicd-pipeline.md「U3 の手の確認」）。**本番組織では確かめません。**
 
 ## 準備

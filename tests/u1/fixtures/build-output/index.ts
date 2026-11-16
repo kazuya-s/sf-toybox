@@ -1,7 +1,7 @@
 /**
- * manifest の確認スクリプトのテストに使う、小さな偽のビルド結果（unit-test-instructions.md「テストのデータ」）。
- * 実際のビルド（WXT）の形に合わせ、Vite の部品の一覧は .vite/manifest-<組>.json に、
- * モジュールの一覧は .vite/modules-<組>.json に置く。
+ * A small fake build output for the manifest check script tests (unit-test-instructions.md "Test data").
+ * Matches the real WXT build: Vite chunk lists go in .vite/manifest-<group>.json and
+ * module lists in .vite/modules-<group>.json.
  */
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
@@ -72,7 +72,7 @@ export function validBuild(): FakeBuild {
         },
         '_react.js': { file: 'chunks/react-abc123.js', name: 'react' },
       },
-      // U4 の追加支援の部品（後から読み込む）
+      // U4 add-assist widget (lazily loaded)
       'changeset-add-assist': {
         'virtual:entry?/entrypoints/changeset-add-assist.ts': {
           file: 'changeset-add-assist.js',
@@ -102,11 +102,11 @@ export function validBuild(): FakeBuild {
       'assets/bar.css': ':host{display:block;background:url("data:image/svg+xml,%3Csvg%3E")}\n',
       'options.html': '<!doctype html><script type="module" src="./chunks/options.js"></script>\n',
     },
-    permissionsDoc: '# 権限\n\n| `storage` | 設定を保存するため |\n',
+    permissionsDoc: '# Permissions\n\n| `storage` | To save settings |\n',
   };
 }
 
-/** 偽のビルド結果をフォルダに書き出し、確認スクリプトに渡す場所を返す */
+/** Writes the fake build output to a folder and returns the paths to pass to the check script */
 export function writeBuild(
   root: string,
   build: FakeBuild,

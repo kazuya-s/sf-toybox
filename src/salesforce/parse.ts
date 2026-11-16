@@ -1,8 +1,8 @@
 /**
- * 受け取った画面の読み取り（functional-design/rules.md の BR1.6、security-design.md §4）。
+ * Reading received pages (functional-design/rules.md BR1.6, security-design.md §4).
  *
- * HTML は DOMParser でスクリプトが動かない文書として読み、textContent と
- * 決めた属性（value・name・action・href）の文字だけを返す。文書の要素は外に出さない。
+ * HTML is parsed with DOMParser as a document in which scripts never run, and only textContent and
+ * the chosen attributes (value, name, action, href) are returned. Document elements never leave this module.
  */
 import type {
   FormField,
@@ -15,10 +15,10 @@ import type {
   TableSpec,
 } from './types';
 
-/** 読み取ってよい属性。型で縛るのに加え、実行時にもこれ以外は読まない */
+/** Attributes that may be read. Restricted by the type and also checked at runtime */
 const READABLE_ATTRIBUTES: ReadonlySet<string> = new Set(['value', 'name', 'action', 'href']);
 
-/** 前後の空白を除き、続く空白を 1 つに詰める */
+/** Trims and collapses consecutive whitespace into one space */
 function cleanText(text: string | null | undefined): string {
   return (text ?? '').replace(/\s+/g, ' ').trim();
 }
@@ -72,7 +72,7 @@ function readOptions(doc: Document, selectSelector: string): SelectOption[] {
   });
 }
 
-/** HTML を読み取る。空や壊れた HTML でも例外は出さず、何も見つからない文書になる */
+/** Parses HTML. Empty or broken HTML never throws; it yields a document where nothing is found */
 export function parsePage(html: string): ParsedPage {
   const doc = new DOMParser().parseFromString(html, 'text/html');
   return {

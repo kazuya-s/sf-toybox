@@ -1,5 +1,5 @@
 /**
- * manifest の確認スクリプトに U4 で足した確認（U4 cicd-pipeline.md 段階 5・6、NFR3.2、NFR7.2）。
+ * Checks U4 added to the manifest script (U4 cicd-pipeline.md stages 5-6, NFR3.2, NFR7.2).
  */
 import { mkdirSync, mkdtempSync, rmSync } from 'node:fs';
 import { join, resolve } from 'node:path';
@@ -7,10 +7,10 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { checkBuild } from '../../../scripts/check-manifest.mjs';
 import { validBuild, writeBuild, type FakeBuild } from '../../u1/fixtures/build-output';
 
-/** 一時的なフォルダはプロジェクトの中（node_modules/.cache）に作り、テストのあとで消す */
+/** Temporary folders are created inside the project (node_modules/.cache) and removed after the tests */
 const TEMP_PARENT = resolve(process.cwd(), 'node_modules/.cache/sftoybox-check-manifest-u4');
 
-/** 追加支援の部品が React の部品と CSS を読み込む、偽のビルド結果 */
+/** Fake build output in which the add-assist chunk loads a React chunk and CSS */
 function validU4Build(): FakeBuild {
   const build = validBuild();
   build.viteManifests['changeset-add-assist'] = {
@@ -31,7 +31,7 @@ function validU4Build(): FakeBuild {
   return build;
 }
 
-describe('manifest の確認スクリプトに U4 で足した確認', () => {
+describe('Checks U4 added to the manifest script', () => {
   let root: string;
 
   beforeEach(() => {
@@ -43,32 +43,32 @@ describe('manifest の確認スクリプトに U4 で足した確認', () => {
     rmSync(root, { recursive: true, force: true });
   });
 
-  /** 1 回ごとに別のフォルダへ書き出し、前の書き出しの残りを読まないようにする */
+  /** Writes to a different folder each time so leftovers from earlier writes are never read */
   function run(build: FakeBuild): string[] {
     return checkBuild(writeBuild(mkdtempSync(join(root, 'run-')), build)).errors;
   }
 
-  it('追加支援の部品とその読み込み先が web_accessible_resources に揃っていれば通る', () => {
+  it('passes when the add-assist chunk and what it loads are all in web_accessible_resources', () => {
     expect(run(validU4Build())).toEqual([]);
   });
 
-  it('追加支援の部品の読み込み先が 1 つ欠けたり、部品がビルドになかったりすると失敗する', () => {
+  it('fails when one file the add-assist chunk loads is missing, or the chunk is not in the build', () => {
     const build = validU4Build();
     const war = build.manifest.web_accessible_resources[0];
     if (war) war.resources = war.resources.filter((file) => file !== 'assets/add-assist.css');
 
     expect(run(build)).toEqual([
-      '追加支援が読み込む assets/add-assist.css が web_accessible_resources に載っていません',
+      'assets/add-assist.css loaded by the add assistant is not listed in web_accessible_resources',
     ]);
 
     const missing = validU4Build();
     delete missing.viteManifests['changeset-add-assist'];
     expect(run(missing)).toEqual([
-      'Vite の部品の一覧に追加支援の部品（changeset-add-assist）がありません',
+      'The Vite chunk lists have no add assistant chunk (changeset-add-assist)',
     ]);
   });
 
-  it('入口に追加支援の部品（React を含む）が静的に入ると、段階 6 の確認で失敗する', () => {
+  it('fails the stage 6 check when the add-assist widget (with React) is statically in the entry', () => {
     const build = validU4Build();
     build.moduleLists.salesforce?.[0]?.modules.push(
       'src/changeset-add-assist/mount.tsx',
@@ -79,8 +79,8 @@ describe('manifest の確認スクリプトに U4 で足した確認', () => {
     const errors = run(build);
 
     expect(errors).toEqual([
-      expect.stringContaining('入口に React が入っています'),
-      expect.stringContaining('入口に追加支援の部品が入っています'),
+      expect.stringContaining('React is in the entry'),
+      expect.stringContaining('The add-assist widget is in the entry'),
     ]);
     expect(errors[1]).toContain('src/changeset-add-assist/mount.tsx');
     expect(errors[1]).not.toContain('load.ts');

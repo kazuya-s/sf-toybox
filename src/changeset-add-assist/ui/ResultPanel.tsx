@@ -1,7 +1,7 @@
 /**
- * 結果の欄: SucceededList・FailedList・UntriedList・CloseButton（frontend-components.md、BR3.4、BR3.5）。
- * 開いたら見出しにフォーカスを移す。閉じる操作（「閉じる」と Escape）は state.ts の closeResult だけを通す。
- * 名前と理由は React の通常の表示だけで出す（NFR3.1）。
+ * Result panel: SucceededList, FailedList, UntriedList, CloseButton (frontend-components.md, BR3.4, BR3.5).
+ * Moves focus to the heading when opened. Closing ("Close" and Escape) goes only through closeResult in state.ts.
+ * Names and reasons are rendered as plain React text only (NFR3.1).
  */
 import { useEffect, useId, useRef } from 'react';
 import type { AddCandidate } from '../../changeset/index';
@@ -9,7 +9,7 @@ import { messageFor, t } from '../../i18n/presentation';
 import type { AppError } from '../../shared/result';
 import type { AddResult, FailedAdd } from '../types';
 
-/** 理由の文言。unexpectedResponse は「追加できたか確かめられませんでした」にする（U2 BR3.3） */
+/** Reason text. unexpectedResponse becomes "Could not confirm the add" (U2 BR3.3) */
 export function failureMessage(error: AppError): string {
   return error.kind === 'unexpectedResponse' ? t('addAssist.unconfirmed') : messageFor(error);
 }

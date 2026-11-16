@@ -1,6 +1,6 @@
 /**
- * 画面（フレーム）の判定（contract-summary.md C3 の PageContextApi.detect、BR2.1〜BR2.5）。
- * 通信はせず、そのフレームの URL と文書の中身だけで判定する（NFR7.3）。
+ * Page (frame) detection (PageContextApi.detect of C3 in contract-summary.md, BR2.1-BR2.5).
+ * No network; detects from the frame's URL and document only (NFR7.3).
  */
 
 export type PageKind =
@@ -9,32 +9,32 @@ export type PageKind =
 export type PageInfo = {
   url: string;
   pageKind: PageKind;
-  /** 変更セットの画面のときだけ */
+  /** Only on change set pages */
   changeSetId: string | null;
-  /** 判定したフレーム自身のホスト名（BR2.5） */
+  /** Host name of the detected frame itself (BR2.5) */
   orgHost: string;
 };
 
 /**
- * 画面の目印の定義（BR2.3、BR2.4）。
- * 手での確認（B1: Apex クラスの一覧など、B2: 変更セットの画面）で実際の画面と違っていたら、ここだけを直す。
+ * Page markers (BR2.3, BR2.4).
+ * If manual checks (B1: Apex class list etc.; B2: change set pages) show the real pages differ, fix only this.
  */
 export const PAGE_MARKERS = {
-  /** 件数のパラメータの名前 */
+  /** Name of the page-size parameter */
   rowsPerPageParam: 'rowsperpage',
-  /** 古い形式の一覧のページ送り（「次のページ」「前のページ」など）の並び */
+  /** Pager of classic-style lists ("Next Page", "Previous Page", etc.) */
   paginationSelectors: ['.paginator', '.pShowMore'],
-  /** 件数バーを置く一覧の表 */
+  /** List table the page-size bar is placed above */
   listTableSelectors: ['table.list', '.listViewport'],
-  /** 送信変更セットの詳細画面のパス */
+  /** Path of the outbound change set detail page */
   changeSetDetailPaths: ['/changemgmt/outboundChangeSetDetailPage.apexp'],
-  /** 変更セットへのコンポーネントの追加画面のパス */
+  /** Path of the page for adding components to a change set */
   changeSetAddPaths: ['/p/mfpkg/AddToPackageFromChangeMgmtUi'],
-  /** Lightning Experience の画面のパスの始まり */
+  /** Path prefix of Lightning Experience pages */
   lightningPathPrefix: '/lightning/',
 } as const;
 
-/** Salesforce の ID は英数字 15 文字か 18 文字（BR2.4） */
+/** Salesforce IDs are 15 or 18 alphanumeric characters (BR2.4) */
 const SALESFORCE_ID_PATTERN = /^[a-zA-Z0-9]{15}(?:[a-zA-Z0-9]{3})?$/;
 
 function matchesPath(pathname: string, paths: readonly string[]): boolean {
@@ -42,14 +42,14 @@ function matchesPath(pathname: string, paths: readonly string[]): boolean {
   return paths.some((path) => lower === path.toLowerCase());
 }
 
-/** 自分が最上位のフレームか。最上位の画面の中身は読まず、自分と比べるだけにする（BR2.2） */
+/** Whether this is the top-level frame. Never reads the top page's content; only compares with itself (BR2.2) */
 function isTopFrame(doc: Document): boolean {
   const view = doc.defaultView;
   if (!view) return true;
   try {
     return view.top === view;
   } catch {
-    // 比べられないときは埋め込まれているとみなす
+    // If they cannot be compared, assume it is embedded
     return false;
   }
 }
@@ -58,7 +58,7 @@ function hasRowsPerPageParam(url: URL): boolean {
   return url.searchParams.has(PAGE_MARKERS.rowsPerPageParam);
 }
 
-/** ページ送りのしるし: rowsperpage を含むリンクか、ページ送りのリンクの並び（BR2.3） */
+/** Pager sign: a link containing rowsperpage, or a row of pager links (BR2.3) */
 function hasPaginationMarker(doc: Document): boolean {
   const pattern = new RegExp(`[?&]${PAGE_MARKERS.rowsPerPageParam}=`, 'i');
   const links = Array.from(doc.querySelectorAll('a[href]'));
@@ -77,7 +77,7 @@ function info(url: URL, pageKind: PageKind, changeSetId: string | null = null): 
   return { url: url.href, pageKind, changeSetId, orgHost: url.hostname };
 }
 
-/** そのフレームを判定する。Classic に切り替えて使っている画面は other（FR5.3） */
+/** Detects this frame. Pages used after switching to Classic are other (FR5.3) */
 export function detect({ url, document: doc }: { url: string; document: Document }): PageInfo {
   const parsed = new URL(url);
   if (parsed.pathname.startsWith(PAGE_MARKERS.lightningPathPrefix)) return info(parsed, 'other');

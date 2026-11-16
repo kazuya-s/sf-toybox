@@ -1,4 +1,4 @@
-/** 絞り込み: 名前（BR2.3）と種類（BR2.4） */
+/** Filters: name (BR2.3) and type (BR2.4) */
 import type { Ref } from 'react';
 import { t } from '../../i18n/presentation';
 import type { RowFilter } from '../types';

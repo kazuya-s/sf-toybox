@@ -1,8 +1,8 @@
 /**
- * 後から読み込む追加支援の部品の入口（U4 performance-design.md §2、cicd-pipeline.md 段階 6）。
- * React・SLDS・U2 を含むため、入口（salesforce.content.ts）とは別のファイルにビルドし、
- * ツールが ON で「追加」画面のときだけ import(chrome.runtime.getURL('/changeset-add-assist.js')) で読み込む。
- * wxt.config.ts で ES モジュールとして出力し、既定の書き出し（default）で mountChangesetAddAssist を外に出す。
+ * Entry of the lazily loaded add-assist widget (U4 performance-design.md §2, cicd-pipeline.md stage 6).
+ * It contains React, SLDS and U2, so it is built as a file separate from the entry (salesforce.content.ts)
+ * and loaded with import(chrome.runtime.getURL('/changeset-add-assist.js')) only when the tool is ON on the "Add" page.
+ * wxt.config.ts emits it as an ES module; the default export exposes mountChangesetAddAssist.
  */
 import { defineUnlistedScript } from 'wxt/utils/define-unlisted-script';
 import { mountChangesetAddAssist } from '../src/changeset-add-assist/mount';

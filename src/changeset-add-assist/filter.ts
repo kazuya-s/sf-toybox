@@ -1,25 +1,25 @@
 /**
- * 候補の並べ替えと絞り込み（U4 functional-design/rules.md の BR1.4、BR2.1〜BR2.5、NFR7.4）。
- * 読み込んだ候補の中だけで計算し、U2 を呼び直さない。どれも入力を変えない純粋な関数。
+ * Sorting and filtering of candidates (U4 functional-design/rules.md BR1.4, BR2.1-BR2.5, NFR7.4).
+ * Computed only over the loaded candidates; never calls U2 again. All are pure functions that do not mutate input.
  */
 import type { AddCandidate } from '../changeset/index';
 import type { CandidateFilter } from './types';
 
-/** 名前の順（大文字と小文字を区別しない）。同じ名前なら componentKey の順にして、並びを決まったものにする */
+/** Name order (case-insensitive). Ties are ordered by componentKey so the order is deterministic */
 export function compareByName(a: AddCandidate, b: AddCandidate): number {
   const byName = a.name.localeCompare(b.name, 'en', { sensitivity: 'base' });
   if (byName !== 0) return byName;
   return a.componentKey < b.componentKey ? -1 : a.componentKey > b.componentKey ? 1 : 0;
 }
 
-/** 候補を名前の順に並べた新しい配列を返す（BR1.4） */
+/** Returns a new array of candidates sorted by name (BR1.4) */
 export function sortCandidates(candidates: readonly AddCandidate[]): AddCandidate[] {
   return [...candidates].sort(compareByName);
 }
 
 /**
- * 親オブジェクトの選択肢（「すべて」は含めない）。候補にあるものを名前の順に重ねずに並べる。
- * 親オブジェクトを持つ候補がなければ空の配列で、そのとき選択欄は出さない（BR2.2）。
+ * Parent object options ("All" not included): the parents present in the candidates, deduplicated, in name order.
+ * Empty when no candidate has a parent object; the select is then hidden (BR2.2).
  */
 export function parentOptions(candidates: readonly AddCandidate[]): string[] {
   const parents = new Set<string>();
@@ -29,7 +29,7 @@ export function parentOptions(candidates: readonly AddCandidate[]): string[] {
   return [...parents].sort((a, b) => a.localeCompare(b, 'en', { sensitivity: 'base' }));
 }
 
-/** 検索の文字を比べやすい形にする（前後の空白を除き、小文字にする） */
+/** Normalizes search text for comparison (trimmed, lower-cased) */
 export function normalizeQuery(query: string): string {
   return query.trim().toLowerCase();
 }
@@ -41,8 +41,8 @@ function matchesQuery(candidate: AddCandidate, normalized: string): boolean {
 }
 
 /**
- * 名前か親オブジェクトに検索の文字が含まれ（BR2.1）、選んだ親オブジェクトに当たる（BR2.2）候補。
- * 並びは入力のまま。
+ * Candidates whose name or parent object contains the search text (BR2.1) and that match the selected parent (BR2.2).
+ * Keeps the input order.
  */
 export function filterCandidates(
   candidates: readonly AddCandidate[],
@@ -56,7 +56,7 @@ export function filterCandidates(
   );
 }
 
-/** 選択の件数と、そのうち絞り込みで見えないものの件数（BR2.3） */
+/** Number of selected items and how many of them the filter hides (BR2.3) */
 export function selectionCounts(
   selection: ReadonlySet<string>,
   visible: readonly AddCandidate[],
@@ -67,7 +67,7 @@ export function selectionCounts(
   return { selected: selection.size, hidden: selection.size - visibleSelected };
 }
 
-/** 選択に入っている候補を、名前の順に返す（BR3.1、NFR3.3）。候補にない componentKey は含めない */
+/** Returns the selected candidates in name order (BR3.1, NFR3.3). componentKeys not among the candidates are skipped */
 export function selectedInNameOrder(
   candidates: readonly AddCandidate[],
   selection: ReadonlySet<string>,

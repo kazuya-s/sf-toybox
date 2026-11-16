@@ -1,6 +1,6 @@
 /**
- * U4 のテストの道具が動くことの確かめ（Step 2）。
- * U2 の入口を差し替えると、U4 が読み込む関数が差し替えに置き換わり、呼ばれた順が記録される。
+ * Checks that the U4 test tooling works (Step 2).
+ * Stubbing the U2 entry replaces the functions U4 imports and records the call order.
  */
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { getChangeSet, listAddCandidates } from '../../src/changeset/index';
@@ -15,12 +15,12 @@ vi.mock('../../src/salesforce/index', async () =>
   (await import('./helpers/u2-mock')).mockSalesforceModule(),
 );
 
-describe('U4 のテストの道具（smoke）', () => {
+describe('U4 test tooling (smoke)', () => {
   beforeEach(() => {
     u2.reset();
   });
 
-  it('U2 の関数が差し替えに置き換わり、既定の結果・決めた失敗・呼ばれた順を返す', async () => {
+  it('U2 functions are replaced by stubs returning the default result, set failures and call order', async () => {
     u2.addComponent.nextFail('timeout');
 
     const changeSet = await getChangeSet({ changeSetId: TEST_CHANGE_SET_ID });

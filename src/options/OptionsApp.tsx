@@ -1,6 +1,6 @@
 /**
- * 設定画面（frontend-components.md の OptionsApp、mockups.md S1、functional-spec.md F1・F2）。
- * 構成: LoadFailedBanner、ToolToggleList（ToolToggle）、SavedNotice、RecentErrors、SupportLink
+ * Options page (OptionsApp in frontend-components.md, mockups.md S1, functional-spec.md F1, F2).
+ * Layout: LoadFailedBanner, ToolToggleList (ToolToggle), SavedNotice, RecentErrors, SupportLink
  */
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { t } from '../i18n/presentation';
@@ -14,7 +14,7 @@ import { SupportLink } from './SupportLink';
 import { ToolToggleList } from './ToolToggleList';
 
 export type OptionsAppProps = {
-  /** 問い合わせ先の URL。未設定なら null */
+  /** Support URL; null if not configured */
   supportUrl: string | null;
 };
 
@@ -68,7 +68,7 @@ export function OptionsApp({ supportUrl }: OptionsAppProps) {
   }, []);
 
   const handleToggle = async (toolId: ToolId, enabled: boolean) => {
-    // 表示をすぐ新しい値にし、保存を頼む（保存は ToolSettings が 1 件ずつ順に行う。BR1.5）
+    // Show the new value immediately and request the save (ToolSettings saves one at a time; BR1.5)
     setValues((current) => (current ? withValue(current, toolId, enabled) : current));
     setHasSaveFailed(false);
     const result = await setEnabled({ toolId, enabled });
@@ -76,7 +76,7 @@ export function OptionsApp({ supportUrl }: OptionsAppProps) {
       savedNotice.show();
       return;
     }
-    // 保存に失敗したら、表示を切り替え前の値に戻して知らせる
+    // If saving fails, revert to the previous value and tell the user
     setValues((current) => (current ? withValue(current, toolId, !enabled) : current));
     savedNotice.hide();
     setHasSaveFailed(true);

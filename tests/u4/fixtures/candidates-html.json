@@ -1,5 +1,5 @@
 {
-  "description": "HTML 風の名前・親オブジェクトを持つ架空の候補。文字として表示されることを確かめる（NFR3.1）",
+  "description": "Fake candidates with HTML-like names and parent objects, to confirm they render as text (NFR3.1)",
   "orgHost": "example.my.salesforce.com",
   "componentType": "CustomField",
   "candidates": [

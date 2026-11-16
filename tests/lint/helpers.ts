@@ -1,6 +1,6 @@
 /**
- * ESLint の規則が効いていることを確かめるための道具。
- * リポジトリの eslint.config.js をそのまま使い、文字列のコードを決めたファイルの場所として検査する。
+ * Helpers to verify that ESLint rules are in effect.
+ * Uses the repository's eslint.config.js as is and lints code strings as if they were at a given file path.
  */
 import { ESLint } from 'eslint';
 
@@ -11,7 +11,7 @@ function getEslint(): ESLint {
   return eslint;
 }
 
-/** code を filePath のファイルとして検査し、エラーになった規則の名前を返す */
+/** Lints code as the file at filePath and returns the names of rules that reported errors */
 export async function lintRuleIds(code: string, filePath: string): Promise<string[]> {
   const [result] = await getEslint().lintText(code, { filePath });
   return (result?.messages ?? [])

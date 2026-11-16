@@ -36,7 +36,7 @@ async function mount(info: PageInfo = listPage): Promise<Element | null> {
   return host;
 }
 
-describe('件数バーの組み込み（mount）', () => {
+describe('Mounting the page-size bar (mount)', () => {
   beforeEach(() => {
     shouldFailRender.value = false;
     vi.spyOn(console, 'error').mockImplementation(() => undefined);
@@ -46,7 +46,7 @@ describe('件数バーの組み込み（mount）', () => {
     document.body.replaceChildren();
   });
 
-  it('Shadow DOM の中に SLDS と件数バーを出し、:root を :host に置き換える（BR4.2）', async () => {
+  it('puts SLDS and the bar in a Shadow DOM and rewrites :root to :host (BR4.2)', async () => {
     setBodyHtml(html.listWithPagination);
 
     const host = await mount();
@@ -59,7 +59,7 @@ describe('件数バーの組み込み（mount）', () => {
     expect(toShadowCss(':root{--a:1}:root .x{}')).toBe(':host{--a:1}:host .x{}');
   });
 
-  it('一覧の表のすぐ上に出す（mockups.md S2）', async () => {
+  it('shows it right above the list table (mockups.md S2)', async () => {
     setBodyHtml(html.listWithPagination);
 
     const host = await mount();
@@ -67,7 +67,7 @@ describe('件数バーの組み込み（mount）', () => {
     expect(host?.nextElementSibling).toBe(document.querySelector('table.list'));
   });
 
-  it('表がないときは本文の先頭に出す', async () => {
+  it('shows it at the top of the body when there is no table', async () => {
     setBodyHtml(html.paginationWithoutTable);
 
     const host = await mount();
@@ -75,7 +75,7 @@ describe('件数バーの組み込み（mount）', () => {
     expect(document.body.firstElementChild).toBe(host);
   });
 
-  it('2 回呼んでも 1 つだけで、一覧の画面でなければ何もしない', async () => {
+  it('only one even when called twice, and nothing outside list pages', async () => {
     setBodyHtml(html.listWithPagination);
 
     const first = await mount();
@@ -87,7 +87,7 @@ describe('件数バーの組み込み（mount）', () => {
     expect(document.querySelectorAll(`[${PAGE_SIZE_BAR_HOST_ATTRIBUTE}]`)).toHaveLength(1);
   });
 
-  it('表示中のエラーでもページを壊さず、記録される（BR4.3）', async () => {
+  it('a render error does not break the page and is logged (BR4.3)', async () => {
     setBodyHtml(html.listWithPagination);
     shouldFailRender.value = true;
 
@@ -103,7 +103,7 @@ describe('件数バーの組み込み（mount）', () => {
     );
   });
 
-  it('mountWithSlds は同じ入れ物に何度呼んでも中身を作り直す', () => {
+  it('mountWithSlds rebuilds the content however many times it is called on the same host', () => {
     const host = document.createElement('div');
 
     const first = mountWithSlds(host);

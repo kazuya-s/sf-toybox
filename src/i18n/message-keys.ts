@@ -1,10 +1,10 @@
 /**
- * 文言キーの一覧（frontend-components.md「文言」と security-design.md §5）。
- * 設計のキー（例: `options.title`）を使い、_locales では `.` を `_` にした名前（例: `options_title`）で持つ。
- * U3・U4 は自分の文言をこの一覧と _locales の両方に足す。
+ * List of message keys (frontend-components.md "Messages" and security-design.md §5).
+ * Uses design keys (e.g. `options.title`); _locales stores them with `.` replaced by `_` (e.g. `options_title`).
+ * U3 and U4 add their messages to both this list and _locales.
  */
 export const MESSAGE_KEYS = [
-  // U4 変更セットへの追加支援（U4 frontend-components.md「文言」）
+  // U4 change set add assistant (U4 frontend-components.md "Messages")
   'addAssist.title',
   'addAssist.target',
   'addAssist.loadingName',
@@ -31,7 +31,7 @@ export const MESSAGE_KEYS = [
   'addAssist.leaveWarning',
   'addAssist.typeUnreadable',
   'addAssist.aborted',
-  // U4 が errorLog に保存する固定の文言の識別子（U4 security-design.md §2）
+  // Fixed message IDs U4 stores in errorLog (U4 security-design.md §2)
   'errorLog.addAssistChangeSetFailed',
   'errorLog.addAssistPreconditionsFailed',
   'errorLog.addAssistCandidatesFailed',
@@ -42,10 +42,10 @@ export const MESSAGE_KEYS = [
   'errorLog.addAssistAborted',
   'errorLog.addAssistLoadFailed',
   'errorLog.addAssistMountFailed',
-  // 拡張機能の名前と説明（manifest の __MSG_ext_name__ など）
+  // Extension name and description (manifest __MSG_ext_name__ etc.)
   'ext.name',
   'ext.description',
-  // 設定画面
+  // Options page
   'options.title',
   'options.toolsHeading',
   'options.toolsIntro',
@@ -62,16 +62,16 @@ export const MESSAGE_KEYS = [
   'options.recentErrorsEmpty',
   'options.clearErrors',
   'options.clearFailed',
-  // ツール
+  // Tools
   'tool.pageSize.name',
   'tool.pageSize.description',
-  // 件数バー
+  // Page-size bar
   'pageSize.label',
   'pageSize.inputLabel',
   'pageSize.inputPlaceholder',
   'pageSize.apply',
   'pageSize.invalid',
-  // 失敗の種類（messageFor が AppError.kind から選ぶ）
+  // Failure kinds (messageFor picks one from AppError.kind)
   'error.sessionExpired',
   'error.permissionDenied',
   'error.timeout',
@@ -81,7 +81,7 @@ export const MESSAGE_KEYS = [
   'error.changeSetLocked',
   'error.storageFailed',
   'error.unexpected',
-  // errorLog に保存する固定の文言の識別子
+  // Fixed message IDs stored in errorLog
   'errorLog.settingsLoadFailed',
   'errorLog.settingsInvalid',
   'errorLog.settingsSaveFailed',
@@ -90,7 +90,7 @@ export const MESSAGE_KEYS = [
   'errorLog.pageSizeBarLoadFailed',
   'errorLog.pageSizeBarRenderFailed',
   'errorLog.unknownMessageKey',
-  // U3 変更セットの中身一覧（U3 は一覧の最後に足す）
+  // U3 change set contents viewer (U3 appends at the end of the list)
   'tool.changesetViewer.name',
   'tool.changesetViewer.description',
   'tool.changesetAddAssist.name',
@@ -138,7 +138,7 @@ export function isMessageKey(value: unknown): value is MessageKey {
   return typeof value === 'string' && (MESSAGE_KEYS as readonly string[]).includes(value);
 }
 
-/** 設計のキーを _locales で使える名前にする（chrome.i18n の名前に `.` は使えない） */
+/** Turns a design key into a name usable in _locales (chrome.i18n names cannot contain `.`) */
 export function toLocaleKey(key: string): string {
   return key.replaceAll('.', '_');
 }

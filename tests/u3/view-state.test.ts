@@ -15,8 +15,8 @@ import { buildManyComponents, loadComponents } from './helpers/fixtures';
 const collator = createCollator('ja');
 const apiNames = (rows: { apiName: string }[]) => rows.map((row) => row.apiName);
 
-describe('状態の決め方と絞り込み・並べ替え（view-state）', () => {
-  it('結果から empty・default・partial・session-expired・error が決まる（BR1.4）', () => {
+describe('Deciding state, filtering and sorting (view-state)', () => {
+  it('the result decides empty, default, partial, session-expired or error (BR1.4)', () => {
     const basic = loadComponents('components-basic');
 
     expect(stateFromResult(ok(basic))).toBe('default');
@@ -27,10 +27,10 @@ describe('状態の決め方と絞り込み・並べ替え（view-state）', () 
     expect(stateFromResult(fail('unexpectedResponse', 'x'))).toBe('error');
   });
 
-  it('最初の並びは種類、API 名の順で、大文字と小文字を区別しない（BR2.1）', () => {
+  it('initial order is type, then API name, case-insensitive (BR2.1)', () => {
     const rows = sortRows(loadComponents('components-basic').components, INITIAL_SORT, collator);
 
-    // 文字コードの順なら TestZebraService（Z）が Testhelper（h）より前になる
+    // In code-point order TestZebraService (Z) would come before Testhelper (h)
     expect(rows.map((row) => [row.componentType, row.apiName])).toEqual([
       ['Apex Class', 'Testhelper'],
       ['Apex Class', 'TestZebraService'],
@@ -38,7 +38,7 @@ describe('状態の決め方と絞り込み・並べ替え（view-state）', () 
     ]);
   });
 
-  it('同じ列を 2 回押すと降順、別の列は昇順。同じ値は種類、API 名で並ぶ（BR2.2）', () => {
+  it('clicking the same column twice sorts descending, another column ascending; ties by type then API name (BR2.2)', () => {
     const rows = loadComponents('components-basic').components;
     const byName = nextSort(INITIAL_SORT, 'apiName');
     const byNameDesc = nextSort(byName, 'apiName');
@@ -53,7 +53,7 @@ describe('状態の決め方と絞り込み・並べ替え（view-state）', () 
       'Testhelper',
       'TestField__c',
     ]);
-    // 親オブジェクトがない 2 行（同じ値）は、種類・API 名の順
+    // Two rows without a parent object (equal values) are ordered by type, then API name
     expect(apiNames(sortRows(rows, byParent, collator))).toEqual([
       'Testhelper',
       'TestZebraService',
@@ -61,21 +61,21 @@ describe('状態の決め方と絞り込み・並べ替え（view-state）', () 
     ]);
   });
 
-  it('名前は前後の空白を除いた部分一致で、大文字と小文字を区別しない（BR2.3）', () => {
+  it('name filter is a trimmed, case-insensitive partial match (BR2.3)', () => {
     const rows = loadComponents('components-basic').components;
 
     expect(apiNames(filterRows(rows, { name: '  HELPER ', type: null }))).toEqual(['Testhelper']);
     expect(filterRows(rows, { name: '   ', type: null })).toHaveLength(3);
   });
 
-  it('種類の選択肢は一覧にある種類だけで、BR2.1 と同じ順（BR2.4）', () => {
+  it('type options are only the types in the list, in the BR2.1 order (BR2.4)', () => {
     const rows = loadComponents('components-basic').components;
 
     expect(typeOptions(rows, collator)).toEqual(['Apex Class', 'Custom Field']);
     expect(typeOptions([], collator)).toEqual([]);
   });
 
-  it('名前と種類を同時に使える（BR2.4）', () => {
+  it('name and type filters work together (BR2.4)', () => {
     const rows = loadComponents('components-basic').components;
 
     expect(apiNames(filterRows(rows, { name: 'test', type: 'Apex Class' }))).toEqual([
@@ -87,7 +87,7 @@ describe('状態の決め方と絞り込み・並べ替え（view-state）', () 
     ]);
   });
 
-  it('絞り込みで 0 件になると filtered-empty。empty やほかの状態は変えない（BR2.6）', () => {
+  it('zero filtered rows is filtered-empty; empty and other states are unchanged (BR2.6)', () => {
     const rows = loadComponents('components-basic').components;
     const shown = filterRows(rows, { name: 'nothing-matches', type: null });
 
@@ -98,7 +98,7 @@ describe('状態の決め方と絞り込み・並べ替え（view-state）', () 
     expect(displayState('default', 3)).toBe('default');
   });
 
-  it('2000 件で絞り込みと並べ替えができる（NFR7.4）', () => {
+  it('filters and sorts 2000 items (NFR7.4)', () => {
     const rows = buildManyComponents().components;
 
     const sorted = sortRows(rows, { column: 'apiName', direction: 'ascending' }, collator);

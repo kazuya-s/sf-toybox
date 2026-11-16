@@ -1,33 +1,33 @@
 /**
- * 追加支援の状態の形（U4 security-design.md §4、functional-spec.md「状態の移り変わり」）。
- * U4 は自分のデータを保存しない。候補と結果は、そのフレームのメモリの中だけに持つ。
+ * Shape of the add-assist state (U4 security-design.md §4, functional-spec.md "State transitions").
+ * U4 stores nothing. Candidates and results live only in that frame's memory.
  */
 import type { AddCandidate } from '../changeset/index';
 import type { AppError, AppErrorKind } from '../shared/result';
 
-/** 追加の段階。result は閉じると画面を読み込み直すので、idle には戻らない */
+/** Add phase. Closing the result reloads the page, so it never returns to idle */
 export type AddAssistPhase = 'idle' | 'adding' | 'result';
 
-/** 「もう一度試す」の対象 */
+/** Target of "Try again" */
 export type RetryTarget = 'preconditions' | 'candidates';
 
-/** 追加を止める理由がどこから来たか */
+/** Where a blocking reason came from */
 export type BlockSource = 'changeSet' | 'preconditions' | 'componentType' | 'candidates';
 
-/** 追加を止める理由（BR1.2、NFR3.6）。retry が null なら、やり直しの手段は出さない */
+/** Reason that blocks adding (BR1.2, NFR3.6). When retry is null, no retry is offered */
 export type BlockReason = {
   source: BlockSource;
   kind: AppErrorKind;
   retry: RetryTarget | null;
 };
 
-/** 候補の読み込みの様子（BR1.3、BR1.4） */
+/** Candidate loading status (BR1.3, BR1.4) */
 export type CandidatesStatus = 'loading' | 'loaded' | 'partial' | 'error' | 'typeUnreadable';
 
-/** 追加できなかった 1 件と、その理由 */
+/** One item that could not be added, with its reason */
 export type FailedAdd = { candidate: AddCandidate; error: AppError };
 
-/** 追加の結果（BR3.4）。aborted は、描画エラーで途中で止めたとき true */
+/** Add result (BR3.4). aborted is true when a render error stopped it midway */
 export type AddResult = {
   succeeded: AddCandidate[];
   failed: FailedAdd[];
@@ -35,28 +35,28 @@ export type AddResult = {
   aborted: boolean;
 };
 
-/** 追加の進み具合（NFR7.3）。done は終わった件数 */
+/** Add progress (NFR7.3). done is the number of finished items */
 export type AddProgress = { done: number; total: number };
 
 export type AddAssistState = {
   phase: AddAssistPhase;
   blockReasons: BlockReason[];
-  /** 追加先の変更セットの名前。取れるまでは null */
+  /** Name of the target change set; null until loaded */
   changeSetName: string | null;
   changeSetNameLoaded: boolean;
   preconditionsPassed: boolean;
-  /** 名前と追加前の確認を読み込んでいるあいだ true */
+  /** true while the name and the pre-add check are loading */
   preconditionsLoading: boolean;
   candidatesStatus: CandidatesStatus;
-  /** listAddCandidates が ok を返したら true（complete: false でも true。BR1.4） */
+  /** true once listAddCandidates returns ok (also true when complete is false; BR1.4) */
   candidatesLoaded: boolean;
-  /** 名前の順に並べた候補 */
+  /** Candidates sorted by name */
   candidates: AddCandidate[];
-  /** 選んだ候補の componentKey。絞り込みでは外さない（BR2.3） */
+  /** componentKeys of the selected candidates. Filtering never removes them (BR2.3) */
   selection: ReadonlySet<string>;
   progress: AddProgress | null;
   result: AddResult | null;
 };
 
-/** 絞り込みの条件（BR2.1、BR2.2）。parent が null なら「すべて」 */
+/** Filter conditions (BR2.1, BR2.2). parent null means "All" */
 export type CandidateFilter = { query: string; parent: string | null };

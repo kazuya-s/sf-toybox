@@ -1,6 +1,6 @@
 /**
- * カードの見出し: 「sf-toybox 検索」と「追加先: <名前>」（frontend-components.md、BR1.2）。
- * 名前は React の通常の表示（文字として扱われる）だけで出す（NFR3.1）。
+ * Card header: "sf-toybox search" and "Add to: <name>" (frontend-components.md, BR1.2).
+ * The name is rendered as plain React text only (treated as text) (NFR3.1).
  */
 import { t } from '../../i18n/presentation';
 

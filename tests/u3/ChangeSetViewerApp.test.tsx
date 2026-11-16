@@ -1,6 +1,6 @@
 /**
- * ツールバーの画面（src/changeset-viewer/ui/ChangeSetViewerApp.tsx）。
- * ページ側への問い合わせは chrome.tabs の模擬で答え、クリップボードと保存は差し替える。
+ * The toolbar popup (src/changeset-viewer/ui/ChangeSetViewerApp.tsx).
+ * Page queries are answered by the chrome.tabs mock; clipboard and download are stubbed.
  */
 import { act, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -62,7 +62,7 @@ async function renderLoaded(
   return { user, ...view };
 }
 
-describe('ツールバーの画面（ChangeSetViewerApp）', () => {
+describe('Toolbar popup (ChangeSetViewerApp)', () => {
   beforeEach(() => {
     spies = installOutputSpies();
     vi.spyOn(console, 'error').mockImplementation(() => undefined);
@@ -72,7 +72,7 @@ describe('ツールバーの画面（ChangeSetViewerApp）', () => {
     restoreOutputSpies();
   });
 
-  it('OFF のとき: 案内と「設定を開く」を出し、ページ側に問い合わせない（BR1.1、NFR7.3）', async () => {
+  it('when OFF: shows the notice and "Open settings" and never queries the page (BR1.1, NFR7.3)', async () => {
     mockState().local.settings = validSettings({ 'changeset-viewer': { enabled: false } });
     const user = userEvent.setup();
     render(<ChangeSetViewerApp />);
@@ -85,7 +85,7 @@ describe('ツールバーの画面（ChangeSetViewerApp）', () => {
     expect(popupState().queryInfos).toEqual([]);
   });
 
-  it('詳細画面でなければ案内を出し、一覧は頼まない（BR1.2）', async () => {
+  it('outside the detail page shows a notice and never requests the list (BR1.2)', async () => {
     answerPageInfo(ok({ ...detailInfo, pageKind: 'pageSizeList', changeSetId: null }));
     render(<ChangeSetViewerApp />);
 
@@ -95,7 +95,7 @@ describe('ツールバーの画面（ChangeSetViewerApp）', () => {
     expect(componentRequests()).toEqual([]);
   });
 
-  it('読み込み中に進み具合が変わる（「n / m ページ」、m がないときは「n ページ」。BR1.3、NFR7.2）', async () => {
+  it('progress updates while loading ("n / m pages", or "n pages" without m) (BR1.3, NFR7.2)', async () => {
     answerPageInfo();
     setTabMessageBehavior(CHANGESET_COMPONENTS_CHANNEL, { kind: 'silent' });
     render(<ChangeSetViewerApp />);
@@ -117,7 +117,7 @@ describe('ツールバーの画面（ChangeSetViewerApp）', () => {
     expect(screen.getByRole('status')).toHaveTextContent('読み込んでいます… (2 ページ)');
   });
 
-  it('一覧の表示: 名前・件数・「-」・最初の並び、絞り込み欄にフォーカス、見出しで並べ替え（BR2.1、BR2.2、BR2.5、BR2.7）', async () => {
+  it('list view: name, counts, "-", initial order, focus on the filter, sorting by header (BR2.1, BR2.2, BR2.5, BR2.7)', async () => {
     const { user } = await renderLoaded();
 
     expect(screen.getByTestId('viewer-title')).toHaveTextContent('変更セット: TestChangeSet');
@@ -143,7 +143,7 @@ describe('ツールバーの画面（ChangeSetViewerApp）', () => {
     expect(screen.getByTestId('viewer-count')).toHaveTextContent('表示中 1 件 / 全 3 件');
   });
 
-  it('partial の帯と「もう一度試す」: 条件を残して読み直し、記録する（BR1.4、BR1.5、BR1.6）', async () => {
+  it('partial banner and "Try again": reloads keeping conditions, and logs (BR1.4, BR1.5, BR1.6)', async () => {
     const partial = { ...loadComponents('components-basic'), complete: false, failedPages: 1 };
     const { user } = await renderLoaded(ok(partial));
 
@@ -171,7 +171,7 @@ describe('ツールバーの画面（ChangeSetViewerApp）', () => {
     );
   });
 
-  it('出力は操作でだけ: 開いたとき・読み込み完了時には呼ばれず、ボタンでだけ呼ばれる（NFR1.2、BR3.8）', async () => {
+  it('output only on user action: not on open or load completion, only from the buttons (NFR1.2, BR3.8)', async () => {
     const { user } = await renderLoaded();
     expect(spies.writeText).not.toHaveBeenCalled();
     expect(spies.createObjectURL).not.toHaveBeenCalled();
@@ -201,7 +201,7 @@ describe('ツールバーの画面（ChangeSetViewerApp）', () => {
     );
   });
 
-  it('文字として表示: <script>・<img onerror> を含む名前が文字として出て、要素が作られない（NFR3.1）', async () => {
+  it('rendered as text: names with <script> or <img onerror> show as text and create no elements (NFR3.1)', async () => {
     const { container } = await renderLoaded(ok(loadComponents('components-unsafe-names')));
 
     expect(screen.getByText('Test<script>window.__pwned = true</script>')).toBeInTheDocument();
@@ -211,7 +211,7 @@ describe('ツールバーの画面（ChangeSetViewerApp）', () => {
     expect((window as unknown as { __pwned?: boolean }).__pwned).toBeUndefined();
   });
 
-  it('絞り込みで 0 件の案内と「絞り込みを解除」、出力のボタンは押せない（BR2.6）', async () => {
+  it('zero filtered rows shows the notice and "Clear filter"; output buttons are disabled (BR2.6)', async () => {
     const { user } = await renderLoaded();
 
     await user.type(screen.getByTestId('viewer-name-filter'), 'no-such-component');
@@ -230,7 +230,7 @@ describe('ツールバーの画面（ChangeSetViewerApp）', () => {
     expect(screen.getByTestId('viewer-copy')).toBeEnabled();
   });
 
-  it('0 件・失敗・ログイン切れの表示と、描画エラーでの「読み込めませんでした」（BR1.4、NFR5.1）', async () => {
+  it('empty, error and session-expired views, and "Could not load" on a render error (BR1.4, NFR5.1)', async () => {
     const empty = { ...loadComponents('components-basic'), components: [] };
     const { unmount } = await renderLoaded(ok(empty));
     expect(screen.getByTestId('viewer-status-empty')).toBeInTheDocument();

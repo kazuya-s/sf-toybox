@@ -1,9 +1,9 @@
 /**
- * エラーの記録（security-design.md §5、monitoring-design.md「Logs & Tracing」）。
- * - コンソールに `[sf-toybox:<toolId>]` を付けて出す（例外の文章はコンソールにだけ出す）
- * - chrome.storage.local の errorLog に、新しいものから 20 件まで残す
- * - 保存するのはツールの識別子・種類・時刻・文言キーだけ。例外の文章や URL は保存しない
- * - 記録に失敗しても例外を外に出さない
+ * Error logging (security-design.md §5, monitoring-design.md "Logs & Tracing").
+ * - Writes to the console prefixed with `[sf-toybox:<toolId>]` (exception text goes to the console only)
+ * - Keeps the newest 20 entries in errorLog in chrome.storage.local
+ * - Stores only the tool ID, kind, time and message key. Never stores exception text or URLs
+ * - Never throws even if logging fails
  */
 import { APP_ERROR_KINDS, ok, type AppErrorKind, type Result } from '../shared/result';
 import { isToolId, type LogToolId } from '../shared/tool-ids';
@@ -17,9 +17,9 @@ export type ErrorLogKind = AppErrorKind | 'unexpected';
 export type ErrorLogEntry = {
   toolId: LogToolId;
   kind: ErrorLogKind;
-  /** ISO 8601 の時刻 */
+  /** ISO 8601 time */
   at: string;
-  /** _locales の文言の識別子（設計のキー）だけ */
+  /** Only the _locales message ID (the design key) */
   messageKey: string;
 };
 
@@ -42,12 +42,12 @@ function toEntries(raw: unknown): ErrorLogEntry[] {
   return Array.isArray(raw) ? raw.filter(isErrorLogEntry) : [];
 }
 
-/** 同じ画面の中での書き込みを 1 つずつ順に行うための列 */
+/** Queue that serializes writes within the same page */
 let writeQueue: Promise<unknown> = Promise.resolve();
 
 /**
- * errorLog の「読んでから書く」処理をここ 1 か所にまとめる。
- * 別のフレームや設定画面と同時に書いたときに記録が抜けることは許す（infrastructure-specification.md）。
+ * The single place for errorLog's read-then-write.
+ * Losing an entry when another frame or the options page writes at the same time is accepted (infrastructure-specification.md).
  */
 function updateErrorLog(
   change: (entries: ErrorLogEntry[]) => ErrorLogEntry[],
@@ -63,8 +63,8 @@ function updateErrorLog(
 }
 
 /**
- * エラーを記録する。コンソールに出し、errorLog に足す。決して reject しない。
- * @param cause コンソールにだけ出す元の例外（保存はしない）
+ * Logs an error to the console and appends it to errorLog. Never rejects.
+ * @param cause Original exception, written to the console only (never stored)
  */
 export async function recordError(report: ErrorReport, cause?: unknown): Promise<void> {
   const prefix = `[sf-toybox:${report.toolId}]`;
@@ -79,20 +79,20 @@ export async function recordError(report: ErrorReport, cause?: unknown): Promise
   };
   try {
     const saved = await updateErrorLog((entries) => [entry, ...entries]);
-    // 記録の失敗はコンソールに出すだけにする（記録の失敗を記録しようとしてくり返さない）
-    if (!saved.ok) console.error(prefix, 'errorLog の保存に失敗しました', saved.error.kind);
+    // A logging failure only goes to the console (never try to log the logging failure)
+    if (!saved.ok) console.error(prefix, 'Failed to save errorLog', saved.error.kind);
   } catch (error) {
-    console.error(prefix, 'errorLog の保存に失敗しました', error);
+    console.error(prefix, 'Failed to save errorLog', error);
   }
 }
 
-/** 最近のエラー（新しいものから）。読めないときは空の一覧 */
+/** Recent errors (newest first). Empty list when they cannot be read */
 export async function getRecentErrors(): Promise<ErrorLogEntry[]> {
   const current = await readLocal(ERROR_LOG_STORAGE_KEY);
   return current.ok ? toEntries(current.value) : [];
 }
 
-/** 最近のエラーを消す */
+/** Clears recent errors */
 export async function clearErrors(): Promise<Result<void>> {
   const result = await updateErrorLog(() => []);
   return result.ok ? ok(undefined) : result;

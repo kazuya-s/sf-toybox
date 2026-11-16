@@ -1,6 +1,6 @@
 /**
- * ChangeSet の入口（contract-summary.md C4 と C5 の ChangeSetApi）。
- * U3・U4 はこのファイルと src/salesforce/index.ts だけを読み込む。
+ * ChangeSet entry point (ChangeSetApi of C4 and C5 in contract-summary.md).
+ * U3 and U4 import only this file and src/salesforce/index.ts.
  */
 export {
   checkAddPreconditions,

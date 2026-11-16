@@ -1,6 +1,6 @@
-# CI（cicd-pipeline.md 段階 1〜7）
-# develop と main への push と、両方へのプルリクエストで動く。
-# 段階 1〜6 がすべて通ったときだけ zip を作り、30 日保存する。ストアへの自動提出はしない。
+# CI (cicd-pipeline.md stages 1-7)
+# Runs on pushes to develop and main, and on pull requests to either.
+# Builds the zip and keeps it for 30 days only when stages 1-6 all pass. Never submits to the store automatically.
 name: ci
 
 on:
@@ -22,7 +22,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      # 段階 1: 準備
+      # Stage 1: setup
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -37,27 +37,27 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      # 段階 2: 静的チェック（ESLint と Prettier）
+      # Stage 2: static checks (ESLint and Prettier)
       - name: Lint
         run: npm run lint
 
-      # 段階 3: ビルド（.output/chrome-mv3/ と Vite の部品の一覧）
+      # Stage 3: build (.output/chrome-mv3/ and the Vite chunk lists)
       - name: Build
         run: npm run build
 
-      # 段階 4 の前: テストの HTML の例に組織のデータがないことの確認（U2）
+      # Before stage 4: make sure the test HTML/JSON fixtures contain no org data (U2)
       - name: Check fixtures
         run: npm run check:fixtures
 
-      # 段階 4: テスト（行のカバレッジ 80% 未満なら失敗）
+      # Stage 4: tests (fails below 80% line coverage)
       - name: Test with coverage
         run: npm run test -- --coverage
 
-      # 段階 5・6: manifest・公開するファイル・外部 URL・入口の React の確認
+      # Stages 5-6: manifest, published files, external URLs, React in the entry
       - name: Check manifest
         run: npm run check:manifest
 
-      # 段階 7: zip を作り、成果物として 30 日保存する
+      # Stage 7: build the zip and keep it as a 30-day artifact
       - name: Zip
         run: npx wxt zip
 

@@ -1,10 +1,10 @@
 /**
- * Salesforce とのやり取り（SalesforceConnection、ADR-002）。U2 で fetch を使うのはこのファイルだけ。
+ * Communication with Salesforce (SalesforceConnection, ADR-002). The only U2 file that uses fetch.
  *
- * - 送り先は、フレームと同じオリジンの https だけ（BR1.1、security-design.md §1）
- * - ログイン中のセッションをそのまま使い、転送はたどらない（BR1.2、§2）
- * - 30 秒で打ち切り、自動では再試行しない（BR1.3、§6）
- * - 応答から失敗の種類を見分け、Result で返す（BR1.4、BR1.7）
+ * - Sends only to https on the same origin as the frame (BR1.1, security-design.md §1)
+ * - Uses the logged-in session as is and never follows redirects (BR1.2, §2)
+ * - Times out after 30 seconds and never retries automatically (BR1.3, §6)
+ * - Classifies failures from the response and returns them as Result (BR1.4, BR1.7)
  */
 import { fail, ok, type Result } from '../shared/result';
 import {
@@ -17,15 +17,15 @@ import {
 import { parsePage } from './parse';
 import type { SalesforcePage, SalesforceRequest, SalesforceResponse } from './types';
 
-/** 呼び出し元から渡されたパスの形: / で始まり、// や /\ で始まらない */
+/** Shape of a caller-supplied path: starts with / and not with // or /\ */
 function isOrgPath(path: string): boolean {
   return path.startsWith('/') && !path.startsWith('//') && !path.startsWith('/\\');
 }
 
 /**
- * 送り先を解き、同じオリジンの https のときだけ URL を返す（security-design.md §1）。
- * base がないときはパスの形も確かめる。base があるとき（フォームの送り先、ページ送りのリンク）は、
- * その画面の URL を基準に解いて、オリジンだけを確かめる。
+ * Resolves the destination and returns a URL only for https on the same origin (security-design.md §1).
+ * Without base it also checks the path shape. With base (a form action or a pager link),
+ * it resolves against that page's URL and checks only the origin.
  */
 export function resolveDestination(path: string, base?: string): URL | null {
   if (base === undefined && !isOrgPath(path)) return null;
@@ -49,7 +49,7 @@ function bodyOf(request: SalesforceRequest): URLSearchParams | undefined {
 
 type Fetched = { kind: 'redirect' } | { kind: 'page'; status: number; text: string };
 
-/** fetch から本文の読み取りまでを 30 秒で打ち切る。時計は finally で止める */
+/** Times out after 30 seconds, from fetch through reading the body. The timer is cleared in finally */
 async function fetchWithTimeout(url: URL, request: SalesforceRequest): Promise<Result<Fetched>> {
   const controller = new AbortController();
   let timedOut = false;
@@ -77,7 +77,7 @@ async function fetchWithTimeout(url: URL, request: SalesforceRequest): Promise<R
   }
 }
 
-/** 受け取った画面から失敗の種類を見分ける（BR1.4） */
+/** Classifies the failure from the received page (BR1.4) */
 function classifyPage(status: number, url: string, text: string): Result<SalesforcePage> {
   const page = parsePage(text);
   if (isLoginPage(page)) return fail('sessionExpired', ERROR_MESSAGES.loginPage);
@@ -90,8 +90,8 @@ function classifyPage(status: number, url: string, text: string): Result<Salesfo
 }
 
 /**
- * 1 回のやり取り。例外は外に出さず、失敗は Result で返す。失敗しても送り直さない。
- * GET への転送は sessionExpired、POST への転送は { redirected: true } の成功（BR1.4）。
+ * One request. Never throws; failures are returned as Result. Never resends on failure.
+ * A redirect on GET is sessionExpired; a redirect on POST is a success { redirected: true } (BR1.4).
  */
 export async function request(call: SalesforceRequest): Promise<Result<SalesforceResponse>> {
   try {
@@ -111,7 +111,7 @@ export async function request(call: SalesforceRequest): Promise<Result<Salesforc
   }
 }
 
-/** 画面を GET で読む。読み取れた画面だけを成功として返す */
+/** Reads a page with GET. Only a readable page is returned as success */
 export async function getPage(path: string, base?: string): Promise<Result<SalesforcePage>> {
   const result = await request({ path, base, method: 'GET' });
   if (!result.ok) return result;

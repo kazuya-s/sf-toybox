@@ -1,8 +1,8 @@
 /**
- * 追加を止める理由（赤字）と「もう一度試す」（frontend-components.md、BR1.2）。
- * 名前の取得と追加前の確認の理由、それに候補の読み込みのログイン切れを出す。
- * 候補の読み込みのほかの失敗と、種類が読めないことは、候補の場所（LoadStatus）に出す。
- * 理由の文言は U1 の messageFor で作り、React の通常の表示だけで出す（NFR3.1）。
+ * Reasons that block adding (in red) and "Try again" (frontend-components.md, BR1.2).
+ * Shows reasons from the name load and the pre-add check, plus a session expiry from loading candidates.
+ * Other candidate-loading failures and an unreadable type are shown in the candidate area (LoadStatus).
+ * Reason text comes from U1's messageFor and is rendered as plain React text only (NFR3.1).
  */
 import { messageFor, t } from '../../i18n/presentation';
 import type { BlockReason } from '../types';
@@ -21,7 +21,7 @@ function isShownHere(reason: BlockReason): boolean {
 export function BlockedReason({ reasons, onRetry, retryDisabled }: BlockedReasonProps) {
   const shown = reasons.filter(isShownHere);
   if (shown.length === 0) return null;
-  // 同じ文言は 1 回だけ出す
+  // Show the same text only once
   const messages = [...new Set(shown.map((reason) => messageFor(reason)))];
   const canRetry = shown.some((reason) => reason.retry === 'preconditions');
 

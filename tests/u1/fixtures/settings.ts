@@ -1,6 +1,6 @@
 /**
- * 保存データの例（unit-test-instructions.md「テストのデータ」）。
- * 正しい形は StoredSettings の型で書き、形が変わったらテストが壊れるようにする。
+ * Example stored data (unit-test-instructions.md "Test data").
+ * The valid shape is typed as StoredSettings so tests break when the shape changes.
  */
 import type { StoredSettings } from '../../../src/settings/stored-settings';
 
@@ -10,16 +10,16 @@ export function validSettings(
   return { schemaVersion: 1, tools };
 }
 
-/** 版のない古い形（BR1.4 の変換の例） */
+/** Old unversioned shape (example for the BR1.4 migration) */
 export const legacySettings = { 'page-size-switcher': false, 'changeset-viewer': true };
 
-/** 今より新しい版 */
+/** A version newer than the current one */
 export const futureSettings = {
   schemaVersion: 2,
   tools: { 'page-size-switcher': { enabled: true } },
 };
 
-/** 壊れた形 */
+/** Broken shape */
 export const brokenSettingsValues: unknown[] = [
   null,
   [],

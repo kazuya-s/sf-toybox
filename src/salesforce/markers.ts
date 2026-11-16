@@ -1,52 +1,52 @@
 /**
- * 画面を読み取るための目印の定義（functional-design/rules.md の BR1.5）。
+ * Markers for reading pages (functional-design/rules.md BR1.5).
  *
- * 詳細画面・追加画面の HTML の作りは、B2 の手での確認（docs/manual-check.md）で確かめる前提の初めの値。
- * 実際の画面と合わなければ、このファイルだけを直す。
+ * The detail and Add page HTML structure are initial values to be confirmed in the B2 manual check (docs/manual-check.md).
+ * If they do not match the real pages, fix only this file.
  */
 import type { FormSpec, ParsedPage, TableSpec } from './types';
 
-/** 1 回のやり取りの打ち切りまでの時間（BR1.3） */
+/** Time until a single request times out (BR1.3) */
 export const REQUEST_TIMEOUT_MS = 30_000;
 
-/** 1 回の読み込みで読むページの上限（BR2.2） */
+/** Maximum pages read in one load (BR2.2) */
 export const MAX_PAGES = 200;
 
-/** Salesforce の ID は英数字 15 文字か 18 文字 */
+/** Salesforce IDs are 15 or 18 alphanumeric characters */
 const SALESFORCE_ID_PATTERN = /^[a-zA-Z0-9]{15}(?:[a-zA-Z0-9]{3})?$/;
 
 export function isSalesforceId(value: unknown): value is string {
   return typeof value === 'string' && SALESFORCE_ID_PATTERN.test(value);
 }
 
-/** 表の列を見分ける見出し（英語と日本語の画面）。大文字と小文字は区別しない */
+/** Column headings that identify table columns (English and Japanese UI). Case-insensitive */
 type ColumnLabels = readonly string[];
 
 export const CHANGE_SET_MARKERS = {
-  /** 送信変更セットの詳細画面のパス（U1 の PAGE_MARKERS と同じ画面） */
+  /** Path of the outbound change set detail page (same page as U1's PAGE_MARKERS) */
   detailPath: '/changemgmt/outboundChangeSetDetailPage.apexp',
-  /** 変更セットへのコンポーネントの追加画面のパス */
+  /** Path of the page for adding components to a change set */
   addPath: '/p/mfpkg/AddToPackageFromChangeMgmtUi',
   idParam: 'id',
-  /** 追加画面の種類の指定 */
+  /** Type parameter on the Add page */
   typeParam: 'entityType',
-  /** 1 ページの件数を増やす指定と、その値（上限は B2 で確かめる） */
+  /** Parameter that increases rows per page, and its value (the maximum is checked in B2) */
   rowsPerPageParam: 'rowsperpage',
   rowsPerPage: 1000,
 
-  /** ページ送り（詳細画面・追加画面で共通） */
+  /** Pager (shared by the detail and Add pages) */
   paging: {
-    /** 「次のページ」のリンク。最後のページでは href のないしるしになる */
+    /** "Next Page" link. On the last page it is a marker without href */
     next: '.paginator a.next[href]',
-    /** 全体の件数の表示 */
+    /** Total count text */
     totalCount: '.paginator .totalCount',
   },
 
   detail: {
     name: 'h2.pageDescription',
-    /** 「アップロード」の操作があれば open（BR2.4） */
+    /** open if there is an "Upload" action (BR2.4) */
     uploadAction: 'input[name="upload"]',
-    /** アップロード済みの表示か、アップロードの記録があれば uploaded（BR2.4） */
+    /** uploaded if there is an uploaded notice or an upload record (BR2.4) */
     uploadedNotice: '.uploadedNotice',
     uploadHistoryRows: '.uploadHistory table.list tr.dataRow',
     componentTable: {
@@ -66,7 +66,7 @@ export const CHANGE_SET_MARKERS = {
       form: 'form#editPage',
       submit: 'input[type="submit"][name="save"]',
     } satisfies FormSpec,
-    /** 種類の選択肢。表示名は詳細画面の種類の欄と同じと想定する（BR3.3。B2 で確かめる） */
+    /** Type options. Labels are assumed to match the detail page's type column (BR3.3; checked in B2) */
     typeSelect: 'select[name="entityType"]',
     candidateTable: {
       table: 'form#editPage table.list',
@@ -80,13 +80,13 @@ export const CHANGE_SET_MARKERS = {
     } satisfies Record<string, ColumnLabels>,
   },
 
-  /** ログイン画面の見分け方（BR1.4） */
+  /** How to recognize the login page (BR1.4) */
   login: {
     selectors: ['form#login_form', 'input[name="pw"]', 'input#password'],
     paths: ['/', '/login', '/secur/login_portal.jsp'],
   },
 
-  /** 権限がない旨の画面と、対象のデータがない旨の画面の見分け方（BR1.4） */
+  /** How to recognize the insufficient-privileges and data-not-available pages (BR1.4) */
   errorPage: {
     permissionSelectors: ['.insufficientPrivileges', '#insufficientPrivileges'],
     titleSelector: '.errorTitle',
@@ -96,8 +96,8 @@ export const CHANGE_SET_MARKERS = {
 } as const;
 
 /**
- * AppError の message に入れる固定の識別子（BR1.7、security-design.md §3）。
- * URL・名前・画面の中身は入れない。
+ * Fixed IDs put in AppError.message (BR1.7, security-design.md §3).
+ * Never includes URLs, names or page content.
  */
 export const ERROR_MESSAGES = {
   invalidDestination: 'salesforce.invalidDestination',
@@ -123,7 +123,7 @@ export const ERROR_MESSAGES = {
   addNotConfirmed: 'changeset.addNotConfirmed',
 } as const;
 
-/** 詳細画面の 1 ページ目のパス（1 ページの件数を増やす指定つき） */
+/** Path of page 1 of the detail page (with the parameter that increases rows per page) */
 export function detailPagePath(changeSetId: string): string {
   const params = new URLSearchParams({
     [CHANGE_SET_MARKERS.idParam]: changeSetId,
@@ -132,7 +132,7 @@ export function detailPagePath(changeSetId: string): string {
   return `${CHANGE_SET_MARKERS.detailPath}?${params.toString()}`;
 }
 
-/** 追加画面の 1 ページ目のパス。種類を指定しないときは、Salesforce が最初に出す種類の画面になる */
+/** Path of page 1 of the Add page. Without a type, it is whichever type Salesforce shows first */
 export function addPagePath(changeSetId: string, componentType?: string): string {
   const params = new URLSearchParams({ [CHANGE_SET_MARKERS.idParam]: changeSetId });
   if (componentType) params.set(CHANGE_SET_MARKERS.typeParam, componentType);
@@ -140,7 +140,7 @@ export function addPagePath(changeSetId: string, componentType?: string): string
   return `${CHANGE_SET_MARKERS.addPath}?${params.toString()}`;
 }
 
-/** 見出しの並びから、その列の位置を探す。なければ -1 */
+/** Finds the column index from the header row; -1 if missing */
 export function findColumn(headers: readonly string[], labels: ColumnLabels): number {
   const wanted = labels.map((label) => label.toLowerCase());
   return headers.findIndex((header) => wanted.includes(header.toLowerCase()));
@@ -155,7 +155,7 @@ function pathnameOf(url: string | null): string | null {
   }
 }
 
-/** ログイン画面か（ログインの入力欄があるか、ログイン画面のパスか） */
+/** Whether this is the login page (has the login inputs, or is on the login path) */
 export function isLoginPage(page: ParsedPage, url: string | null = null): boolean {
   const pathname = pathnameOf(url);
   if (pathname !== null && CHANGE_SET_MARKERS.login.paths.some((path) => path === pathname)) {
@@ -171,7 +171,7 @@ function hasErrorTitle(page: ParsedPage, titles: readonly string[]): boolean {
   return titles.some((candidate) => lower === candidate.toLowerCase());
 }
 
-/** 権限がない旨の画面か */
+/** Whether this is the insufficient-privileges page */
 export function isPermissionDeniedPage(page: ParsedPage): boolean {
   const markers = CHANGE_SET_MARKERS.errorPage;
   return (
@@ -180,7 +180,7 @@ export function isPermissionDeniedPage(page: ParsedPage): boolean {
   );
 }
 
-/** 対象のデータがない旨の画面か */
+/** Whether this is the data-not-available page */
 export function isNotFoundPage(page: ParsedPage): boolean {
   return hasErrorTitle(page, CHANGE_SET_MARKERS.errorPage.notFoundTitles);
 }

@@ -14,13 +14,13 @@ function pageInfo(pageKind: PageKind, changeSetId: string | null = null): PageIn
 
 const request = { channel: PAGE_INFO_CHANNEL };
 
-describe('ポップアップへの応答（page-info-responder、C3・BR2.6・NFR3.5）', () => {
+describe('Answering the popup (page-info-responder, C3, BR2.6, NFR3.5)', () => {
   beforeEach(() => {
     vi.useFakeTimers();
     vi.spyOn(console, 'error').mockImplementation(() => undefined);
   });
 
-  it('自分の拡張機能からの問い合わせに Result<PageInfo> を答える', async () => {
+  it('answers queries from this extension with Result<PageInfo>', async () => {
     const info = pageInfo('outboundChangeSetDetail', '0A2xx0000000001AAA');
     registerPageInfoResponder(() => info);
 
@@ -31,7 +31,7 @@ describe('ポップアップへの応答（page-info-responder、C3・BR2.6・NF
     expect(mockState().externalListeners).toEqual([]);
   });
 
-  it('ほかの sender.id には答えない', async () => {
+  it('does not answer other sender.id values', async () => {
     registerPageInfoResponder(() => pageInfo('pageSizeList'));
 
     const answer = dispatchRuntimeMessage(request, { id: 'another-extension' });
@@ -41,7 +41,7 @@ describe('ポップアップへの応答（page-info-responder、C3・BR2.6・NF
   });
 
   it.each([{ channel: 'sftoybox/other' }, { type: PAGE_INFO_CHANNEL }, 'sftoybox/page-info', null])(
-    '決めた channel 以外（%j）には答えない',
+    'does not answer channels other than the agreed one (%j)',
     async (message) => {
       registerPageInfoResponder(() => pageInfo('pageSizeList'));
 
@@ -52,7 +52,7 @@ describe('ポップアップへの応答（page-info-responder、C3・BR2.6・NF
     },
   );
 
-  it('判定が other のフレームは登録せず、答えない', async () => {
+  it('frames detected as other register nothing and never answer', async () => {
     const result = registerPageInfoResponder(() => pageInfo('other'));
 
     const answer = dispatchRuntimeMessage(request);
@@ -67,7 +67,7 @@ describe('ポップアップへの応答（page-info-responder、C3・BR2.6・NF
     ['outboundChangeSetDetail', 0],
     ['outboundChangeSetAdd', 100],
     ['pageSizeList', 200],
-  ] as const)('優先度に応じて答えを遅らせる: %s は %d ミリ秒', async (pageKind, delay) => {
+  ] as const)('delays the answer by priority: %s waits %d ms', async (pageKind, delay) => {
     expect(RESPONSE_DELAY_MS[pageKind]).toBe(delay);
     registerPageInfoResponder(() => pageInfo(pageKind));
     let answered = false;
@@ -84,7 +84,7 @@ describe('ポップアップへの応答（page-info-responder、C3・BR2.6・NF
     expect(answered).toBe(true);
   });
 
-  it('判定でエラーが出ても例外が外に出ず、記録され、登録もしない', () => {
+  it('a detection error never throws, is logged, and nothing is registered', () => {
     const result = registerPageInfoResponder(() => {
       throw new Error('detect failed');
     });

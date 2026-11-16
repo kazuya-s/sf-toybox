@@ -12,8 +12,8 @@ import {
 import { parsePage } from '../../../src/salesforce/parse';
 import { TEST_CHANGE_SET_ID, TEST_ORIGIN, readFixture } from '../helpers/location';
 
-describe('画面の目印の定義（markers、BR1.5）', () => {
-  it('詳細画面と追加画面のパスを、ID・種類・rowsperpage つきで作る', () => {
+describe('Page markers (markers, BR1.5)', () => {
+  it('builds the detail and Add page paths with the ID, type and rowsperpage', () => {
     expect(detailPagePath(TEST_CHANGE_SET_ID)).toBe(
       '/changemgmt/outboundChangeSetDetailPage.apexp?id=0A2000000000001&rowsperpage=1000',
     );
@@ -23,7 +23,7 @@ describe('画面の目印の定義（markers、BR1.5）', () => {
     expect(addPagePath(TEST_CHANGE_SET_ID)).toBe(
       '/p/mfpkg/AddToPackageFromChangeMgmtUi?id=0A2000000000001&rowsperpage=1000',
     );
-    // 種類の値に記号があっても、パラメータの外に出ない
+    // Symbols in the type value never escape the parameter
     expect(addPagePath(TEST_CHANGE_SET_ID, 'a&id=x')).toContain('entityType=a%26id%3Dx');
     expect(isSalesforceId(TEST_CHANGE_SET_ID)).toBe(true);
     expect(isSalesforceId('0A2000000000001AAA')).toBe(true);
@@ -32,13 +32,13 @@ describe('画面の目印の定義（markers、BR1.5）', () => {
     expect(isSalesforceId(null)).toBe(false);
   });
 
-  it('ログイン画面の例を、入力欄とパスのどちらからも見分けられる', () => {
+  it('recognizes the login page from either its inputs or its path', () => {
     expect(isLoginPage(parsePage(readFixture('login.html')))).toBe(true);
     expect(isLoginPage(parsePage('<p>x</p>'), `${TEST_ORIGIN}/secur/login_portal.jsp`)).toBe(true);
     expect(isLoginPage(parsePage('<p>x</p>'), 'not a url')).toBe(false);
   });
 
-  it('権限がない旨の画面と、対象のデータがない旨の画面を見分けられる', () => {
+  it('recognizes the insufficient-privileges page and the data-not-available page', () => {
     const denied = parsePage(readFixture('permission-denied.html'));
     const notFound = parsePage(readFixture('not-found.html'));
     const deniedByTitle = parsePage('<span class="errorTitle">権限が不十分です</span>');
@@ -50,7 +50,7 @@ describe('画面の目印の定義（markers、BR1.5）', () => {
     expect(isNotFoundPage(denied)).toBe(false);
   });
 
-  it('ふつうの詳細画面は、ログイン・権限・データなしのどれにも当たらない', () => {
+  it('a normal detail page matches none of login, privileges or data not available', () => {
     const detail = parsePage(readFixture('detail-single.html'));
 
     expect(isLoginPage(detail, `${TEST_ORIGIN}${detailPagePath(TEST_CHANGE_SET_ID)}`)).toBe(false);
@@ -60,7 +60,7 @@ describe('画面の目印の定義（markers、BR1.5）', () => {
     expect(findColumn(['Action'], ['Name'])).toBe(-1);
   });
 
-  it('message の識別子は、すべて固定の文字で、URL や名前が入る形がない', () => {
+  it('message IDs are all fixed strings with no room for URLs or names', () => {
     for (const message of Object.values(ERROR_MESSAGES)) {
       expect(message).toMatch(/^(salesforce|changeset)\.[a-zA-Z]+$/);
     }

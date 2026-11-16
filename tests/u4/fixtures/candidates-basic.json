@@ -1,5 +1,5 @@
 {
-  "description": "手で書いた架空の候補（親オブジェクトありとなし）。名前は Test で始め、ID は 0 の並びだけにする",
+  "description": "Hand-written fake candidates (with and without parent objects). Names start with Test and IDs are all zeros",
   "orgHost": "example.my.salesforce.com",
   "changeSetId": "0A2000000000000AAA",
   "changeSetName": "Test Change Set",

@@ -1,4 +1,4 @@
-/** 設定画面の入口（拡張機能自身の画面。Salesforce の画面には組み込まない） */
+/** Entry of the options page (an extension page; never injected into Salesforce pages) */
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { t } from '../../src/i18n/presentation';

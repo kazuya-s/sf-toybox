@@ -7,7 +7,7 @@ import { TEST_CHANGE_SET_ID, readFixture, useSalesforceLocation } from '../helpe
 import { ADD_FORM_ACTION, ADD_PAGE_1, ADD_PAGE_2, DETAIL_PAGE_1 } from '../helpers/paths';
 
 const changeSetId = TEST_CHANGE_SET_ID;
-/** add-page2.html にある Field_C__c のチェック欄の値 */
+/** Checkbox value for Field_C__c in add-page2.html */
 const FIELD_C_KEY = '00N000000000003';
 const request = { changeSetId, componentType: 'CustomField', componentKey: FIELD_C_KEY };
 
@@ -18,16 +18,16 @@ function routeAddPages() {
 }
 
 function errorOf<T>(result: Result<T>) {
-  if (result.ok) throw new Error('失敗を期待しました');
+  if (result.ok) throw new Error('Expected a failure');
   return result.error;
 }
 
-describe('1 件の追加（addComponent、BR3.2〜BR3.5）', () => {
+describe('Adding one component (addComponent, BR3.2-BR3.5)', () => {
   beforeEach(() => {
     useSalesforceLocation();
   });
 
-  it('送る内容: POST の本文は、隠し項目・「追加」ボタン・選んだ 1 件のチェック欄だけ（NFR3.2）', async () => {
+  it('POST body: only the hidden fields, the "Add" button and the one selected checkbox (NFR3.2)', async () => {
     const mock = routeAddPages()
       .route(ADD_FORM_ACTION, redirect(), 'POST')
       .route(DETAIL_PAGE_1, html(readFixture('detail-after-add.html')));
@@ -45,7 +45,7 @@ describe('1 件の追加（addComponent、BR3.2〜BR3.5）', () => {
     ]);
   });
 
-  it('2 ページ目にある行を見つけて送り、読み直しで見つかれば成功', async () => {
+  it('finds the row on page 2, sends it, and succeeds when the reload finds it', async () => {
     const mock = routeAddPages()
       .route(ADD_FORM_ACTION, html(readFixture('add-page1.html')), 'POST')
       .route(DETAIL_PAGE_1, html(readFixture('detail-after-add.html')));
@@ -61,7 +61,7 @@ describe('1 件の追加（addComponent、BR3.2〜BR3.5）', () => {
     ]);
   });
 
-  it('どのページにもないときは、送らずに notFound を返す（BR3.5）', async () => {
+  it('returns notFound without sending when no page has the row (BR3.5)', async () => {
     const mock = routeAddPages();
 
     const missing = await addComponent({ ...request, componentKey: '00N000000000009' });
@@ -76,7 +76,7 @@ describe('1 件の追加（addComponent、BR3.2〜BR3.5）', () => {
     expect(mock.calls.filter((call) => call.method === 'POST')).toEqual([]);
   });
 
-  it('途中のページが読めないときは、notFound ではなくその種類の失敗を返す', async () => {
+  it('returns that page failure, not notFound, when a page in between cannot be read', async () => {
     const mock = installFetchMock()
       .route(ADD_PAGE_1, html(readFixture('add-page1.html')))
       .route(ADD_PAGE_2, redirect());
@@ -87,7 +87,7 @@ describe('1 件の追加（addComponent、BR3.2〜BR3.5）', () => {
     expect(mock.calls.filter((call) => call.method === 'POST')).toEqual([]);
   });
 
-  it('二重送信: 同じ (changeSetId, componentKey) で続けて 2 回頼んでも、POST は 1 回（NFR3.3）', async () => {
+  it('double send: two back-to-back requests for the same (changeSetId, componentKey) make one POST (NFR3.3)', async () => {
     const mock = routeAddPages()
       .route(ADD_FORM_ACTION, redirect(), 'POST')
       .route(DETAIL_PAGE_1, html(readFixture('detail-after-add.html')));
@@ -97,12 +97,12 @@ describe('1 件の追加（addComponent、BR3.2〜BR3.5）', () => {
     expect(first).toEqual({ ok: true, value: undefined });
     expect(second).toBe(first);
 
-    // 終わったあとは表から外れているので、次の頼みは新しく送る
+    // Once finished it is removed from the table, so the next request sends again
     await addComponent(request);
     expect(mock.count(ADD_FORM_ACTION, 'POST')).toBe(2);
   });
 
-  it('POST が失敗しても送り直さず、読み直しもしない', async () => {
+  it('a failed POST is neither resent nor followed by a reload', async () => {
     const mock = routeAddPages().route(ADD_FORM_ACTION, networkError(), 'POST');
 
     const result = await addComponent(request);
@@ -112,7 +112,7 @@ describe('1 件の追加（addComponent、BR3.2〜BR3.5）', () => {
     expect(mock.count(DETAIL_PAGE_1)).toBe(0);
   });
 
-  it('読み直しで見つからなければ unexpectedResponse（確かめられなかった）を返す（BR3.3）', async () => {
+  it('returns unexpectedResponse (could not verify) when the reload does not find it (BR3.3)', async () => {
     routeAddPages()
       .route(ADD_FORM_ACTION, redirect(), 'POST')
       .route(DETAIL_PAGE_1, html(readFixture('detail-single.html')));
@@ -126,7 +126,7 @@ describe('1 件の追加（addComponent、BR3.2〜BR3.5）', () => {
     });
   });
 
-  it('転送とログイン切れ: POST への転送は読み直しへ進み、読み直しの GET が転送ならログイン切れ（BR1.4）', async () => {
+  it('redirects and session expiry: a POST redirect proceeds to the reload; a redirect on that GET is session expiry (BR1.4)', async () => {
     const mock = routeAddPages()
       .route(ADD_FORM_ACTION, redirect(), 'POST')
       .route(DETAIL_PAGE_1, redirect());

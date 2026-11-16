@@ -1,6 +1,6 @@
 /**
- * 「追加」画面で選ばれている種類の読み取り（src/changeset/page-type.ts、BR1.3）。
- * HTML は DOMParser で読み、文書に差し込む（innerHTML は使わない）。
+ * Reading the type selected on the "Add" page (src/changeset/page-type.ts, BR1.3).
+ * HTML is parsed with DOMParser and inserted into the document (innerHTML is not used).
  */
 import { afterEach, describe, expect, it } from 'vitest';
 import { readSelectedComponentType } from '../../src/changeset/index';
@@ -12,12 +12,12 @@ function setBody(source: string): void {
   );
 }
 
-describe('種類の読み取り（page-type）', () => {
+describe('Reading the type (page-type)', () => {
   afterEach(() => {
     document.body.replaceChildren();
   });
 
-  it('種類の選択欄で選ばれている選択肢の value を読む', () => {
+  it('reads the value of the option selected in the type select', () => {
     setBody(`
       <form id="editPage">
         <select name="entityType">
@@ -29,13 +29,13 @@ describe('種類の読み取り（page-type）', () => {
     expect(readSelectedComponentType(document)).toBe('CustomField');
   });
 
-  it('種類の選択欄がなければ null（同じ名前の select 以外の要素も数えない）', () => {
+  it('null when there is no type select (other elements with the same name do not count)', () => {
     setBody('<form id="editPage"><input name="entityType" value="ApexClass"></form>');
 
     expect(readSelectedComponentType(document)).toBeNull();
   });
 
-  it('選ばれている値が空なら null', () => {
+  it('null when the selected value is empty', () => {
     setBody(`
       <select name="entityType">
         <option value="" selected>--None--</option>

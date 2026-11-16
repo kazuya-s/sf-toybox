@@ -1,6 +1,6 @@
 /**
- * C4・C5 の形（inception/contract-design/contract-summary.md、functional-design/entities.md）。
- * U3・U4 はこの形で受け取る。
+ * Shapes for C4 and C5 (inception/contract-design/contract-summary.md, functional-design/entities.md).
+ * U3 and U4 receive data in these shapes.
  */
 import type { LoadProgress } from '../salesforce/types';
 
@@ -13,29 +13,29 @@ export type OutboundChangeSet = {
 };
 
 export type ChangeSetComponent = {
-  /** 種類（画面の表示名） */
+  /** Type (label shown on the page) */
   componentType: string;
   apiName: string;
-  /** 画面で空のときは null（BR2.5） */
+  /** null when blank on the page (BR2.5) */
   parentObject: string | null;
 };
 
 export type ChangeSetComponents = {
   changeSet: OutboundChangeSet;
   components: ChangeSetComponent[];
-  /** false のとき、一部のページを読み込めなかった（BR2.3） */
+  /** When false, some pages could not be loaded (BR2.3) */
   complete: boolean;
-  /** 読み込めなかったページ数。complete が true なら 0 */
+  /** Number of pages that could not be loaded. 0 when complete is true */
   failedPages: number;
 };
 
-/** 追加画面の候補の 1 行（C5 の AddCandidate） */
+/** One candidate row on the Add page (C5 AddCandidate) */
 export type AddCandidate = {
-  /** addComponent に渡す値（その行のチェック欄の値） */
+  /** Value passed to addComponent (the row's checkbox value) */
   componentKey: string;
   name: string;
   parentObject: string | null;
-  /** 追加画面の種類の選択肢の表示名 */
+  /** Label of the type option on the Add page */
   typeLabel: string;
 };
 
@@ -45,17 +45,17 @@ export type AddCandidates = {
   failedPages: number;
 };
 
-/** 1 件の追加の頼み（C5 の addComponent の入力） */
+/** Request to add one component (input of C5 addComponent) */
 export type AddRequest = {
   changeSetId: string;
-  /** 追加画面の種類の選択肢の値 */
+  /** Value of the type option on the Add page */
   componentType: string;
   componentKey: string;
 };
 
 export type ListComponentsRequest = {
   changeSetId: string;
-  /** 1 ページ読むごとに呼ばれる。中で起きた例外は読み込みを止めない */
+  /** Called after each page is read. Exceptions thrown inside do not stop the load */
   onProgress?: (progress: LoadProgress) => void;
 };
 

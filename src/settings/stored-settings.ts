@@ -1,12 +1,12 @@
 /**
- * 保存する設定（StoredSettings）の形の確かめと変換（contract-summary.md C1、BR1.2〜BR1.5）。
- * 保存の読み書きはしない純粋な関数だけを置く。
+ * Validation and migration of the stored settings (StoredSettings) shape (contract-summary.md C1, BR1.2-BR1.5).
+ * Only pure functions here; no storage reads or writes.
  */
 import { isToolId, type ToolId } from '../shared/tool-ids';
 
 export const CURRENT_SCHEMA_VERSION = 1;
 
-/** chrome.storage.local の設定のキー（infrastructure-specification.md） */
+/** Settings key in chrome.storage.local (infrastructure-specification.md) */
 export const SETTINGS_STORAGE_KEY = 'settings';
 
 export type StoredSettings = {
@@ -18,7 +18,7 @@ export type ToolEnabledValue = { toolId: ToolId; enabled: boolean };
 
 export type ParsedSettings = {
   settings: StoredSettings;
-  /** 保存データが読めない形だったとき true（BR1.3） */
+  /** true when the stored data had an unreadable shape (BR1.3) */
   loadFailed: boolean;
 };
 
@@ -30,7 +30,7 @@ function isPlainObject(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
-/** 版 1 の tools を確かめる。知らないツールの項目は無視し、形が不正なら null */
+/** Validates version 1 tools. Unknown tool entries are ignored; returns null if the shape is invalid */
 function parseToolsV1(raw: unknown): StoredSettings['tools'] | null {
   if (!isPlainObject(raw)) return null;
   const tools: StoredSettings['tools'] = {};
@@ -42,8 +42,8 @@ function parseToolsV1(raw: unknown): StoredSettings['tools'] | null {
 }
 
 /**
- * 版のない古い形（`{ "<ToolId>": true | false }`）を版 1 に変換する（BR1.4）。
- * 今は版 1 だけなので、版のない形を「今より小さい版」の例として扱う。
+ * Migrates the old unversioned shape (`{ "<ToolId>": true | false }`) to version 1 (BR1.4).
+ * Only version 1 exists today, so the unversioned shape stands in for "an older version".
  */
 function migrateLegacy(raw: Record<string, unknown>): StoredSettings['tools'] | null {
   const tools: StoredSettings['tools'] = {};
@@ -55,11 +55,11 @@ function migrateLegacy(raw: Record<string, unknown>): StoredSettings['tools'] | 
 }
 
 /**
- * 保存領域から読んだ値を確かめる。
- * - 値がない: 保存値なし（すべて ON。loadFailed ではない。BR1.2）
- * - schemaVersion が 1: そのまま使う
- * - schemaVersion がない（古い形）: 今の形に変換する（BR1.4）
- * - それより新しい版、または形が不正: loadFailed（BR1.3）
+ * Validates a value read from storage.
+ * - No value: nothing stored (all ON; not loadFailed; BR1.2)
+ * - schemaVersion 1: used as is
+ * - No schemaVersion (old shape): migrated to the current shape (BR1.4)
+ * - A newer version or an invalid shape: loadFailed (BR1.3)
  */
 export function parseStoredSettings(raw: unknown): ParsedSettings {
   if (raw === undefined) return { settings: emptySettings(), loadFailed: false };
@@ -82,12 +82,12 @@ export function parseStoredSettings(raw: unknown): ParsedSettings {
     : { settings: emptySettings(), loadFailed: true };
 }
 
-/** 保存値のないツールは ON（BR1.2） */
+/** Tools with no stored value are ON (BR1.2) */
 export function resolveEnabled(settings: StoredSettings, toolId: ToolId): boolean {
   return settings.tools[toolId]?.enabled ?? true;
 }
 
-/** 表示中の全ツールの値から、今の形の保存データ全体を作る（BR1.5） */
+/** Builds the whole stored data in the current shape from the values of all displayed tools (BR1.5) */
 export function toStoredSettings(values: readonly ToolEnabledValue[]): StoredSettings {
   const tools: StoredSettings['tools'] = {};
   for (const { toolId, enabled } of values) tools[toolId] = { enabled };

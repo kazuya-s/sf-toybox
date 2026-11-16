@@ -1,6 +1,6 @@
 /**
- * ツールバーの画面（ポップアップ）の入口。
- * U3 の画面を src/changeset-viewer/ui/ から読み込んで置くだけにする（cicd-pipeline.md 段階 2）。
+ * Entry of the toolbar popup.
+ * It only mounts the U3 screen from src/changeset-viewer/ui/ (cicd-pipeline.md stage 2).
  */
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';

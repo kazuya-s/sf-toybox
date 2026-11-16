@@ -1,4 +1,4 @@
-/** scripts/check-manifest.mjs の型の宣言（テストから読み込むため） */
+/** Type declarations for scripts/check-manifest.mjs (imported by tests) */
 export declare const ALLOWED_PERMISSIONS: string[];
 export declare const SALESFORCE_MATCHES: string[];
 export declare const PAGE_SIZE_BAR_ENTRY_NAME: string;

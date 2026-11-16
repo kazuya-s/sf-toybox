@@ -1,5 +1,7 @@
 # 手での確認の手順 — U4 変更セットへの追加支援
 
+English: [manual-check-u4.en.md](manual-check-u4.en.md)
+
 自動テスト（`npm run test -- --coverage`）とビルドの確認（`npm run check:manifest`）が通ったあとに、**開発者組織か Sandbox** で、ビルドした拡張機能を手で動かして確かめます（team.md「Testing Posture」、U4 cicd-pipeline.md「U4 の手の確認」）。
 
 - **本番組織では確かめません**。U4 は Salesforce を書き換える唯一のツールです（NFR8.1）。

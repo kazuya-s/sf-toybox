@@ -10,8 +10,8 @@ function waitForTasks(): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, 20));
 }
 
-describe('画面の読み取り（parse、BR1.6、NFR3.1）', () => {
-  it('詳細画面の例から、名前・行・ページ送りが読める', () => {
+describe('Reading pages (parse, BR1.6, NFR3.1)', () => {
+  it('reads the name, rows and pager from the detail page example', () => {
     const page = parsePage(readFixture('detail-page1.html'));
 
     const table = page.table(CHANGE_SET_MARKERS.detail.componentTable);
@@ -28,7 +28,7 @@ describe('画面の読み取り（parse、BR1.6、NFR3.1）', () => {
     expect(page.text(CHANGE_SET_MARKERS.paging.totalCount)).toBe('5');
   });
 
-  it('<script>・onerror・onload を含む HTML を読んでも、何も実行されない', async () => {
+  it('nothing runs when parsing HTML with <script>, onerror or onload', async () => {
     const flagWindow = window as unknown as ScriptFlagWindow;
     delete flagWindow.sftoyboxScriptRan;
 
@@ -39,7 +39,7 @@ describe('画面の読み取り（parse、BR1.6、NFR3.1）', () => {
     expect(flagWindow.sftoyboxScriptRan).toBeUndefined();
   });
 
-  it('読んだ文書の要素は利用者の画面に入らず、返すのは文字と単純な値だけ', () => {
+  it('parsed elements never enter the user page; only text and simple values are returned', () => {
     const before = document.body.childElementCount;
 
     const page = parsePage(readFixture('add-page1.html'));
@@ -65,7 +65,7 @@ describe('画面の読み取り（parse、BR1.6、NFR3.1）', () => {
     ]);
   });
 
-  it('決めた属性（value・name・action・href）以外は返さない', () => {
+  it('returns no attributes other than the chosen ones (value, name, action, href)', () => {
     const page = parsePage(readFixture('script.html'));
 
     expect(page.attribute('a.next', 'href')).toBe('javascript:void(0)');
@@ -74,7 +74,7 @@ describe('画面の読み取り（parse、BR1.6、NFR3.1）', () => {
     expect(page.attribute('.missing', 'href')).toBeNull();
   });
 
-  it('空の HTML や壊れた HTML でも例外が出ず、何も見つからない', () => {
+  it('empty or broken HTML never throws and finds nothing', () => {
     for (const html of ['', '<table><tr><td>', '<<<>>>', '<form id="editPage"><input']) {
       const page = parsePage(html);
       expect(page.text(CHANGE_SET_MARKERS.detail.name)).toBeNull();

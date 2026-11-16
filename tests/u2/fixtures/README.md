@@ -1,5 +1,7 @@
 # U2 のテストの HTML の例
 
+English: [README.en.md](README.en.md)
+
 ここにあるのは、U2 の自動テストで使う Salesforce の画面の例です。リポジトリは公開なので、組織のデータを入れないよう次の手順で扱います（infrastructure-design/cicd-pipeline.md「テストの HTML の例」）。
 
 ## 例を足すときの手順

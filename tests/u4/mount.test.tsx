@@ -1,5 +1,5 @@
 /**
- * 「追加」画面への組み込み（src/changeset-add-assist/mount.tsx、BR1.3、BR1.5、security-design.md §6、NFR5.1）。
+ * Mounting on the "Add" page (src/changeset-add-assist/mount.tsx, BR1.3, BR1.5, security-design.md §6, NFR5.1).
  */
 import { act, fireEvent, within } from '@testing-library/react';
 import { useSyncExternalStore } from 'react';
@@ -24,7 +24,7 @@ vi.mock('../../src/salesforce/index', async () =>
   (await import('./helpers/u2-mock')).mockSalesforceModule(),
 );
 
-/** 描画エラーを起こす条件: always はいつでも、adding は追加中になったとき */
+/** When to throw a render error: always, or adding (once adding starts) */
 const failRender = vi.hoisted(() => ({ when: 'never' as 'never' | 'always' | 'adding' }));
 
 vi.mock('../../src/changeset-add-assist/ui/AddAssistCard', async (importOriginal) => {
@@ -59,7 +59,7 @@ async function mount(info: PageInfo = addPage): Promise<Element | null> {
 
 function inShadow(host: Element | null) {
   const shadow = host?.shadowRoot;
-  if (!shadow) throw new Error('shadow root がありません');
+  if (!shadow) throw new Error('No shadow root');
   return within(shadow as unknown as HTMLElement);
 }
 
@@ -68,7 +68,7 @@ function errorLogKeys(): unknown[] {
   return log.map((entry) => entry.messageKey);
 }
 
-describe('「追加」画面への組み込み（mount）', () => {
+describe('Mounting on the "Add" page (mount)', () => {
   beforeEach(() => {
     u2.reset();
     failRender.when = 'never';
@@ -79,7 +79,7 @@ describe('「追加」画面への組み込み（mount）', () => {
     document.body.replaceChildren();
   });
 
-  it('Shadow DOM の中で、候補の表のすぐ上に置き、名前・確認・候補の読み込みを始める（BR1.5）', async () => {
+  it('mounts in a Shadow DOM right above the candidate table and starts loading name, check and candidates (BR1.5)', async () => {
     setBody(addPageHtml());
 
     const host = await mount();
@@ -93,7 +93,7 @@ describe('「追加」画面への組み込み（mount）', () => {
     ]);
   });
 
-  it('2 回呼んでも 1 つだけで、「追加」画面でなければ何もしない', async () => {
+  it('only one even when called twice, and nothing outside the "Add" page', async () => {
     setBody(addPageHtml());
 
     const first = await mount();
@@ -108,7 +108,7 @@ describe('「追加」画面への組み込み（mount）', () => {
     expect(await mount({ ...addPage, changeSetId: null })).toBeNull();
   });
 
-  it('種類を読めないときは、候補の場所に案内を出し、追加を押せなくし、記録する（BR1.3）', async () => {
+  it('when the type cannot be read, shows a notice in the candidate area, disables Add and logs it (BR1.3)', async () => {
     setBody(addPageWithoutTypeHtml);
 
     const host = await mount();
@@ -122,7 +122,7 @@ describe('「追加」画面への組み込み（mount）', () => {
     await vi.waitFor(() => expect(errorLogKeys()).toContain('errorLog.addAssistTypeUnreadable'));
   });
 
-  it('描画エラーでは追加支援だけを外し、Salesforce の画面は壊さずに記録する（NFR5.1）', async () => {
+  it('a render error removes only the add assistant, keeps the Salesforce page intact and logs it (NFR5.1)', async () => {
     failRender.when = 'always';
     setBody(addPageHtml());
 
@@ -135,7 +135,7 @@ describe('「追加」画面への組み込み（mount）', () => {
     await vi.waitFor(() => expect(errorLogKeys()).toContain('errorLog.addAssistRenderFailed'));
   });
 
-  it('追加中に描画エラーが起きると、今の 1 件のあとで止まり、beforeunload はループが終わるまで残る（security-design.md §6）', async () => {
+  it('a render error while adding stops after the current item, and beforeunload stays until the loop ends (security-design.md §6)', async () => {
     const watch = watchBeforeUnload();
     setBody(addPageHtml());
     const host = await mount();

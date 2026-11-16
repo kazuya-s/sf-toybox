@@ -7,12 +7,12 @@ import {
 } from '../../../src/errors/error-log';
 import { mockState, setStorageFailure } from '../helpers/chrome-mock';
 
-describe('エラーの記録（error-log、security-design.md §5）', () => {
+describe('Error log (error-log, security-design.md §5)', () => {
   beforeEach(() => {
     vi.spyOn(console, 'error').mockImplementation(() => undefined);
   });
 
-  it('コンソールに [sf-toybox:<toolId>] を付けて、元の例外と一緒に出す', async () => {
+  it('writes to the console prefixed with [sf-toybox:<toolId>], together with the original exception', async () => {
     const cause = new Error('boom');
 
     await recordError(
@@ -32,7 +32,7 @@ describe('エラーの記録（error-log、security-design.md §5）', () => {
     );
   });
 
-  it('保存される中身は決めた 4 項目だけで、例外の文章や URL は入らない', async () => {
+  it('stores only the four chosen fields, never exception text or URLs', async () => {
     const cause = new Error('https://example.my.salesforce.com/01p?secret=Account-Name');
 
     await recordError(
@@ -48,7 +48,7 @@ describe('エラーの記録（error-log、security-design.md §5）', () => {
     expect(new Date(String(stored[0]?.at)).toISOString()).toBe(stored[0]?.at);
   });
 
-  it(`${ERROR_LOG_MAX_ENTRIES + 1} 件目を足すと一番古いものが消え、新しいものから並ぶ`, async () => {
+  it(`adding entry ${ERROR_LOG_MAX_ENTRIES + 1} drops the oldest and lists newest first`, async () => {
     for (let index = 0; index <= ERROR_LOG_MAX_ENTRIES; index += 1) {
       await recordError({
         toolId: 'core',
@@ -64,7 +64,7 @@ describe('エラーの記録（error-log、security-design.md §5）', () => {
     expect(entries.map((entry) => entry.messageKey)).not.toContain('errorLog.test0');
   });
 
-  it('消去すると一覧が空になる', async () => {
+  it('clearing empties the list', async () => {
     await recordError({
       toolId: 'core',
       kind: 'unexpected',
@@ -78,7 +78,7 @@ describe('エラーの記録（error-log、security-design.md §5）', () => {
   });
 
   it.each(['lastError', 'throw'] as const)(
-    '保存に失敗（%s）しても例外が外に出ず、コンソールにだけ出る',
+    'a save failure (%s) never throws and goes only to the console',
     async (mode) => {
       setStorageFailure({ set: mode });
 
@@ -92,13 +92,13 @@ describe('エラーの記録（error-log、security-design.md §5）', () => {
 
       expect(console.error).toHaveBeenCalledWith(
         '[sf-toybox:core]',
-        'errorLog の保存に失敗しました',
+        'Failed to save errorLog',
         'storageFailed',
       );
     },
   );
 
-  it('読み出しに失敗すると空の一覧を返し、壊れた項目は除く', async () => {
+  it('returns an empty list when reading fails, and drops broken entries', async () => {
     mockState().local.errorLog = [
       { toolId: 'core', kind: 'unexpected', at: '2026-11-12T00:00:00.000Z', messageKey: 'a' },
       { toolId: 'someone-else', kind: 'unexpected', at: 'x', messageKey: 'b' },

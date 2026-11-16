@@ -11,15 +11,15 @@ import {
   validSettings,
 } from '../fixtures/settings';
 
-describe('保存する設定の形（stored-settings）', () => {
-  it('正しい形はそのまま使い、保存された値を返す', () => {
+describe('Stored settings shape (stored-settings)', () => {
+  it('uses a valid shape as is and returns the stored values', () => {
     const parsed = parseStoredSettings(validSettings());
 
     expect(parsed.loadFailed).toBe(false);
     expect(resolveEnabled(parsed.settings, 'page-size-switcher')).toBe(false);
   });
 
-  it('保存値がないときは loadFailed にせず、すべて ON とする（BR1.2）', () => {
+  it('with nothing stored, it is not loadFailed and everything is ON (BR1.2)', () => {
     const parsed = parseStoredSettings(undefined);
 
     expect(parsed.loadFailed).toBe(false);
@@ -27,7 +27,7 @@ describe('保存する設定の形（stored-settings）', () => {
     expect(resolveEnabled(parsed.settings, 'changeset-viewer')).toBe(true);
   });
 
-  it('保存データに載っていないツールは ON とし、知らない項目は無視する（AC1.1.3）', () => {
+  it('tools missing from the stored data are ON and unknown entries are ignored (AC1.1.3)', () => {
     const raw = {
       schemaVersion: 1,
       tools: { 'page-size-switcher': { enabled: false }, 'future-tool': { enabled: false } },
@@ -41,7 +41,7 @@ describe('保存する設定の形（stored-settings）', () => {
     expect(Object.keys(parsed.settings.tools)).toEqual(['page-size-switcher']);
   });
 
-  it('版のない古い形は今の形に変換して使う（BR1.4）', () => {
+  it('migrates the old unversioned shape to the current one (BR1.4)', () => {
     const parsed = parseStoredSettings(legacySettings);
 
     expect(parsed.loadFailed).toBe(false);
@@ -51,21 +51,21 @@ describe('保存する設定の形（stored-settings）', () => {
     });
   });
 
-  it('今より新しい版は loadFailed とし、すべて ON として扱う（BR1.3、BR1.4）', () => {
+  it('a newer version is loadFailed and treated as all ON (BR1.3, BR1.4)', () => {
     const parsed = parseStoredSettings(futureSettings);
 
     expect(parsed.loadFailed).toBe(true);
     expect(resolveEnabled(parsed.settings, 'page-size-switcher')).toBe(true);
   });
 
-  it.each(brokenSettingsValues)('壊れた形（%j）は loadFailed とする（BR1.3）', (raw) => {
+  it.each(brokenSettingsValues)('a broken shape (%j) is loadFailed (BR1.3)', (raw) => {
     const parsed = parseStoredSettings(raw);
 
     expect(parsed.loadFailed).toBe(true);
     expect(parsed.settings.tools).toEqual({});
   });
 
-  it('toStoredSettings は全ツールの値から今の形を作る（BR1.5）', () => {
+  it('toStoredSettings builds the current shape from all tools values (BR1.5)', () => {
     const stored = toStoredSettings([
       { toolId: 'page-size-switcher', enabled: true },
       { toolId: 'changeset-viewer', enabled: false },

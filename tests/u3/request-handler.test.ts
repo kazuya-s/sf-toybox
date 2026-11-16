@@ -1,6 +1,6 @@
 /**
- * ページ側の一覧の頼みの受け取り（src/changeset-viewer/request-handler.ts）。
- * U2 の listComponents は vi.mock で差し替え、実際の組織にはつながない。
+ * Page-side handler for list requests (src/changeset-viewer/request-handler.ts).
+ * U2's listComponents is stubbed with vi.mock; it never connects to a real org.
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { ListComponentsRequest } from '../../src/changeset';
@@ -43,14 +43,14 @@ const request = (changeSetId = CHANGE_SET_ID) => ({
   changeSetId,
 });
 
-describe('ページ側の受け取り（request-handler）', () => {
+describe('Page-side handler (request-handler)', () => {
   beforeEach(() => {
     listComponentsMock.mockReset();
     listComponentsMock.mockResolvedValue(ok(loadComponents('components-basic')));
     vi.spyOn(console, 'error').mockImplementation(() => undefined);
   });
 
-  it('受け取りの確かめ: ほかの拡張機能・違う窓口・違う changeSetId には false で答えず、U2 を呼ばない', async () => {
+  it('request checks: another extension, a wrong channel or a wrong changeSetId get false, no answer, and U2 is not called', async () => {
     const listener = createComponentsListener(CHANGE_SET_ID);
     const sendResponse = vi.fn();
     const own = { id: TEST_EXTENSION_ID };
@@ -60,7 +60,7 @@ describe('ページ側の受け取り（request-handler）', () => {
     expect(listener({ channel: CHANGESET_COMPONENTS_CHANNEL }, own, sendResponse)).toBe(false);
     expect(listener(request(OTHER_CHANGE_SET_ID), own, sendResponse)).toBe(false);
     expect(listener(null, own, sendResponse)).toBe(false);
-    // 詳細画面でないフレームには聞き手そのものがない
+    // Frames that are not the detail page have no listener at all
     await registerChangesetViewerHandler({ ...detailPage, pageKind: 'pageSizeList' });
     await expect(dispatchRuntimeMessage(request())).resolves.toBeUndefined();
 
@@ -68,7 +68,7 @@ describe('ページ側の受け取り（request-handler）', () => {
     expect(sendResponse).not.toHaveBeenCalled();
   });
 
-  it('すべて合うと true を返し、U2 の結果を sendResponse で 1 回だけ返す', async () => {
+  it('when everything matches it returns true and sends U2 result once via sendResponse', async () => {
     const listener = createComponentsListener(CHANGE_SET_ID);
     const sendResponse = vi.fn();
 
@@ -83,7 +83,7 @@ describe('ページ側の受け取り（request-handler）', () => {
     expect(sendResponse).toHaveBeenCalledTimes(1);
   });
 
-  it('進み具合: 1 ページごとに progress を送り、送信の失敗は無視して続ける（BR4.1、NFR7.2）', async () => {
+  it('progress: sends progress per page and ignores send failures (BR4.1, NFR7.2)', async () => {
     listComponentsMock.mockImplementation(async ({ onProgress }: ListComponentsRequest) => {
       onProgress?.({ loadedPages: 1, totalPages: 3 });
       setRuntimeSendFailure('lastError');
@@ -108,7 +108,7 @@ describe('ページ側の受け取り（request-handler）', () => {
     expect(mockState().local.errorLog).toBeUndefined();
   });
 
-  it('失敗を外に出さない: U2 が例外を投げても unexpectedResponse が返り、記録される（NFR5.1）', async () => {
+  it('never lets failures escape: if U2 throws, unexpectedResponse is returned and logged (NFR5.1)', async () => {
     listComponentsMock.mockRejectedValue(new Error('TestChangeSet exploded'));
     const sendResponse = vi.fn();
 
@@ -130,7 +130,7 @@ describe('ページ側の受け取り（request-handler）', () => {
     );
   });
 
-  it('OFF のとき: OFF なら登録しない。ON でも詳細画面でないフレームでは登録しない（NFR7.3）', async () => {
+  it('when OFF it does not register; when ON it still does not register outside the detail page (NFR7.3)', async () => {
     mockState().local.settings = validSettings({ 'changeset-viewer': { enabled: false } });
     await expect(registerChangesetViewerHandler(detailPage)).resolves.toBe(false);
     expect(mockState().messageListeners).toHaveLength(0);
@@ -150,7 +150,7 @@ describe('ページ側の受け取り（request-handler）', () => {
     expect(mockState().messageListeners).toHaveLength(1);
   });
 
-  it('記録の中身: 記録はツールの識別子・種類・文言の識別子だけで、名前を含まない（NFR1.3）', async () => {
+  it('log content: only the tool ID, kind and message key, never names (NFR1.3)', async () => {
     listComponentsMock.mockRejectedValue(new Error('TestChangeSet TestField__c'));
     const sendResponse = vi.fn();
 
@@ -162,14 +162,14 @@ describe('ページ側の受け取り（request-handler）', () => {
     expect(JSON.stringify(mockState().local.errorLog)).not.toMatch(/TestChangeSet|TestField/);
   });
 
-  it('onMessageExternal には登録しない（NFR3.3）', async () => {
+  it('does not register onMessageExternal (NFR3.3)', async () => {
     await registerChangesetViewerHandler(detailPage);
 
     expect(mockState().messageListeners).toHaveLength(1);
     expect(mockState().externalListeners).toHaveLength(0);
   });
 
-  describe('入口（entrypoints/salesforce.content.ts）から', () => {
+  describe('From the entry (entrypoints/salesforce.content.ts)', () => {
     beforeEach(() => {
       setEmbeddedFrame(true);
       setBodyHtml('<div>TestChangeSet</div>');
@@ -179,10 +179,10 @@ describe('ページ側の受け取り（request-handler）', () => {
       restoreFrame();
     });
 
-    it('ON の詳細画面では登録され、ほかの画面では登録されない', async () => {
+    it('registers on a detail page with the tool ON and not on other pages', async () => {
       setFrameUrl(urls.changeSetDetail15);
       await runSalesforceContent({ loadPageSizeBar: vi.fn() });
-      // 画面の判定への応答（U1）と、一覧の受け取り（U3）
+      // The page-detection responder (U1) and the list handler (U3)
       expect(mockState().messageListeners).toHaveLength(2);
       const answer = await dispatchRuntimeMessage({
         channel: CHANGESET_COMPONENTS_CHANNEL,

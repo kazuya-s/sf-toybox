@@ -1,15 +1,15 @@
 /**
- * 件数バー（frontend-components.md の PageSizeBar、mockups.md S2、BR3.1〜BR3.5）。
- * 文言は React の通常の表示（文字として扱われる）だけで出す（NFR3.3）。
+ * Page-size bar (PageSizeBar in frontend-components.md, mockups.md S2, BR3.1-BR3.5).
+ * Text is rendered as plain React text only (treated as text) (NFR3.3).
  */
 import { useId, useState, type ChangeEvent, type FormEvent } from 'react';
 import { t } from '../i18n/presentation';
 import { PRESET_SIZES, buildPageSizeUrl, parsePageSizeInput, selectedPreset } from './page-size';
 
 export type PageSizeBarProps = {
-  /** このフレームの URL */
+  /** URL of this frame */
   href: string;
-  /** 新しい URL でこのフレームを開き直す。既定は location.assign */
+  /** Reopens this frame with the new URL. Defaults to location.assign */
   navigate?: (url: string) => void;
 };
 
@@ -72,7 +72,7 @@ function CustomSizeInput({ onSubmitSize }: { onSubmitSize: (size: string) => voi
     event.preventDefault();
     const size = parsePageSizeInput(text);
     if (size === null) {
-      // 開き直さず、正しい入力の形を示す。入力した文字は消さない（BR3.2）
+      // Do not reopen; show the valid input format. Keep what the user typed (BR3.2)
       setIsInvalid(true);
       return;
     }

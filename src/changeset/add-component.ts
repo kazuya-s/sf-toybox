@@ -1,12 +1,12 @@
 /**
- * 1 件の追加（C5 の SalesforceConnectionApi.addComponent、BR3.2〜BR3.5、security-design.md §5・§6）。
- * 外へは src/salesforce/index.ts から出す。
+ * Adds one component (C5 SalesforceConnectionApi.addComponent, BR3.2-BR3.5, security-design.md §5, §6).
+ * Exported through src/salesforce/index.ts.
  *
- * 1. その種類の追加画面を、componentKey の行が見つかるまでページ順に読む（200 ページまで）
- * 2. 見つかったページのフォームから、隠し項目・「追加」ボタン・選んだ 1 件のチェック欄だけを POST で 1 回送る
- * 3. 変更セットを読み直し、種類の表示名と名前が一致する行があれば成功
+ * 1. Reads the Add page for the type page by page until the componentKey row is found (up to 200 pages)
+ * 2. POSTs once from that page's form with only the hidden fields, the "Add" button and the one selected checkbox
+ * 3. Reloads the change set; succeeds if a row with the same type label and name is found
  *
- * 失敗しても送り直さない。同じ (changeSetId, componentKey) の頼みが動いている間は、新しく送らない。
+ * Never resends on failure. While a request for the same (changeSetId, componentKey) is running, no new one is sent.
  */
 import { request } from '../salesforce/connection';
 import { ERROR_MESSAGES, addPagePath, isSalesforceId } from '../salesforce/markers';
@@ -18,7 +18,7 @@ import type { AddRequest } from './types';
 
 type FoundCandidate = { row: CandidateRow; form: AddPage['form']; url: string };
 
-/** 進行中の頼みの表。フレーム（ページ側のプログラム）ごとで、メモリの中だけに持つ */
+/** In-flight request table. Per frame (page-side program), kept only in memory */
 const inFlight = new Map<string, Promise<Result<void>>>();
 
 function isValidRequest({ changeSetId, componentType, componentKey }: AddRequest): boolean {
@@ -31,7 +31,7 @@ function isValidRequest({ changeSetId, componentType, componentKey }: AddRequest
   );
 }
 
-/** 候補を探す。途中のページが読めなければ notFound ではなく、そのページの失敗を返す（BR3.5） */
+/** Finds the candidate. If a page in between cannot be read, returns that page's failure, not notFound (BR3.5) */
 async function findCandidate({
   changeSetId,
   componentType,
@@ -54,7 +54,7 @@ async function findCandidate({
   return fail('notFound', ERROR_MESSAGES.candidateNotFound);
 }
 
-/** 送る項目: 隠し項目、「追加」ボタン、選んだ 1 件のチェック欄だけ（NFR3.2） */
+/** Fields to send: only the hidden fields, the "Add" button and the one selected checkbox (NFR3.2) */
 function buildFields({ row, form }: FoundCandidate): FormField[] | null {
   if (!form.submit) return null;
   return [...form.hiddenFields, form.submit, row.checkbox];
@@ -66,7 +66,7 @@ async function postCandidate(found: FoundCandidate): Promise<Result<SalesforceRe
   return request({ path: found.form.action, base: found.url, method: 'POST', formFields });
 }
 
-/** 送ったあとに読み直して確かめる（BR3.3）。読み直しが一部だけで見つからなければ確かめられない */
+/** Reloads after sending to verify (BR3.3). If the reload is partial and the row is missing, it cannot be verified */
 async function confirmAdded(changeSetId: string, row: CandidateRow): Promise<Result<void>> {
   const reread = await listComponents({ changeSetId });
   if (!reread.ok) return reread;
@@ -89,7 +89,7 @@ async function runAdd(addRequest: AddRequest): Promise<Result<void>> {
   }
 }
 
-/** 1 件を追加する。U4 が 1 件ずつ順に呼ぶ（C5） */
+/** Adds one component. U4 calls it one at a time in order (C5) */
 export function addComponent(addRequest: AddRequest): Promise<Result<void>> {
   const key = JSON.stringify([addRequest.changeSetId, addRequest.componentKey]);
   const running = inFlight.get(key);

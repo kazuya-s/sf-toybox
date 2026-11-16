@@ -1,22 +1,22 @@
 /**
- * 入口（entrypoints/salesforce.content.ts）から追加支援の部品を読み込んで置く処理
- * （U4 performance-design.md §2、BR1.1、cicd-pipeline.md 段階 6）。
+ * Loads and mounts the add-assist widget from the entry (entrypoints/salesforce.content.ts)
+ * (U4 performance-design.md §2, BR1.1, cicd-pipeline.md stage 6).
  *
- * この処理は入口に入るので、React・U2・state.ts を読み込まない。
- * ツールが ON で「追加」画面のときだけ、拡張機能に同梱した部品を import(chrome.runtime.getURL(...)) で読み込む。
- * 外部の URL からは読み込まない。例外は外に出さず、記録する（NFR5.1）。件数バーの処理には影響しない。
+ * This code is part of the entry, so it never imports React, U2 or state.ts.
+ * Only when the tool is ON on the "Add" page, it loads the bundled widget with import(chrome.runtime.getURL(...)).
+ * Never loads from an external URL. Exceptions never escape; they are logged (NFR5.1). The page-size bar is unaffected.
  */
 import type { ChangesetAddAssistModule } from '../../entrypoints/changeset-add-assist';
 import { recordError } from '../errors/error-log';
 import type { PageInfo } from '../page/page-context';
 import { isEnabled } from '../settings/tool-settings';
 
-/** ビルドした追加支援の部品のファイル（web_accessible_resources に載せる） */
+/** Built add-assist widget file (listed in web_accessible_resources) */
 export const CHANGESET_ADD_ASSIST_PATH = '/changeset-add-assist.js';
 
 const TOOL_ID = 'changeset-add-assist';
 
-/** 拡張機能に同梱した追加支援の部品を読み込む */
+/** Loads the add-assist widget bundled with the extension */
 export async function loadBundledChangesetAddAssist(): Promise<ChangesetAddAssistModule> {
   const module = (await import(
     /* @vite-ignore */ chrome.runtime.getURL(CHANGESET_ADD_ASSIST_PATH)
@@ -29,8 +29,8 @@ export async function loadBundledChangesetAddAssist(): Promise<ChangesetAddAssis
 }
 
 /**
- * 「追加」画面で、ツールが ON のときだけ部品を読み込んで置く（BR1.1）。
- * ON/OFF は画面の読み込み時に 1 回だけ読む。読めなければ ON（U1 の isEnabled）。
+ * On the "Add" page, loads and mounts the widget only when the tool is ON (BR1.1).
+ * ON/OFF is read once when the page loads. If it cannot be read, it is treated as ON (U1 isEnabled).
  */
 export async function startChangesetAddAssist(
   pageInfo: PageInfo,

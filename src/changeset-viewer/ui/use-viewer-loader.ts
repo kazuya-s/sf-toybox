@@ -1,7 +1,7 @@
 /**
- * 開いたときの流れと読み直し（functional-spec.md F1、rules.md BR1.1〜BR1.6）。
- * ON/OFF → 画面の判定 → 一覧の頼み（進み具合つき）→ 状態の決定 → 失敗の記録。
- * 頼みは開いたときに 1 回だけ行い、絞り込みや並べ替えでは頼み直さない（NFR7.4）。
+ * Flow on open and reloading (functional-spec.md F1, rules.md BR1.1-BR1.6).
+ * ON/OFF -> page detection -> list request (with progress) -> decide state -> log failures.
+ * The request is made once on open; filtering and sorting never re-request (NFR7.4).
  */
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { LoadProgress } from '../../changeset';
@@ -28,11 +28,11 @@ const LOG_KEYS: Partial<Record<ResultState, MessageKey>> = {
   partial: 'errorLog.viewerPartial',
 };
 
-/** 失敗をツールの識別子・種類・文言の識別子だけで記録する（BR1.6、NFR1.3） */
+/** Logs a failure with only the tool ID, kind and message key (BR1.6, NFR1.3) */
 function logResult(state: ResultState, result: ComponentsResult): void {
   const messageKey = LOG_KEYS[state];
   if (!messageKey) return;
-  // partial は一部のページの失敗で、種類は返ってこないため unexpected とする
+  // partial means some pages failed and no kind is returned, so it is logged as unexpected
   const kind: ErrorLogKind = result.ok ? 'unexpected' : result.error.kind;
   void recordError({ toolId: 'changeset-viewer', kind, messageKey });
 }
@@ -55,7 +55,7 @@ export function useViewerLoader() {
 
   const load = useCallback(async () => {
     const current = target.current;
-    // 読み直しのあいだは、もう一度頼まない（BR1.5）
+    // Do not request again while reloading (BR1.5)
     if (!current || isInFlight.current) return;
     isInFlight.current = true;
     setPhase({ kind: 'loading', progress: null });
@@ -85,7 +85,7 @@ export function useViewerLoader() {
   }, []);
 
   useEffect(() => {
-    // StrictMode で効果が 2 回動いても、問い合わせは 1 回だけにする
+    // Even if StrictMode runs the effect twice, ask only once
     if (hasStarted.current) return;
     hasStarted.current = true;
     void (async () => {

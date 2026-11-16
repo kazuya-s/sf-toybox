@@ -1,62 +1,62 @@
 /**
- * 画面の URL と HTML の例（unit-test-instructions.md「テストのデータ」）。
- * HTML は DOMParser で読み、文書に差し込む（innerHTML は使わない）。
+ * Example page URLs and HTML (unit-test-instructions.md "Test data").
+ * HTML is parsed with DOMParser and inserted into the document (innerHTML is not used).
  */
 
 export const ORG_HOST = 'example.my.salesforce.com';
 const ORIGIN = `https://${ORG_HOST}`;
 
 export const urls = {
-  /** Apex クラスの一覧（rowsperpage あり） */
+  /** Apex class list (with rowsperpage) */
   listWithRowsPerPage: `${ORIGIN}/01p?setupid=ApexClasses&rowsperpage=500&retURL=%2Fsetup`,
-  /** Apex クラスの一覧（rowsperpage なし） */
+  /** Apex class list (without rowsperpage) */
   listWithoutRowsPerPage: `${ORIGIN}/01p?setupid=ApexClasses`,
-  /** 送信変更セットの詳細画面（15 文字と 18 文字の ID） */
+  /** Outbound change set detail page (15- and 18-character IDs) */
   changeSetDetail15: `${ORIGIN}/changemgmt/outboundChangeSetDetailPage.apexp?id=0A2xx0000000001`,
   changeSetDetail18: `${ORIGIN}/changemgmt/outboundChangeSetDetailPage.apexp?id=0A2xx0000000001AAA`,
-  /** 変更セットへの追加画面 */
+  /** Page for adding to a change set */
   changeSetAdd: `${ORIGIN}/p/mfpkg/AddToPackageFromChangeMgmtUi?id=0A2xx0000000001AAA`,
-  /** ID の形が正しくない変更セットの画面 */
+  /** Change set page with a malformed ID */
   changeSetBadId: `${ORIGIN}/changemgmt/outboundChangeSetDetailPage.apexp?id=0A2xx-<script>`,
   changeSetNoId: `${ORIGIN}/p/mfpkg/AddToPackageFromChangeMgmtUi`,
-  /** Lightning Experience の画面 */
+  /** Lightning Experience page */
   lightning: `${ORIGIN}/lightning/setup/ApexClasses/home`,
-  /** しるしのない画面 */
+  /** Page with no markers */
   plain: `${ORIGIN}/setup/forcecomHomepage.apexp`,
 } as const;
 
 export const html = {
-  /** ページ送りのリンクがある古い形式の一覧 */
+  /** Classic-style list with pager links */
   listWithPagination: `
     <div class="bPageBlock">
       <table class="list"><tr><th>名前</th></tr><tr><td>MyClass</td></tr></table>
       <div class="paginator"><a href="/01p?lsi=25">次のページ</a></div>
     </div>`,
-  /** 件数の切り替えリンクがある一覧 */
+  /** List with a page-size link */
   listWithRowsPerPageLink: `
     <table class="list"><tr><td>MyClass</td></tr></table>
     <a href="/01p?setupid=ApexClasses&amp;rowsperpage=100">表示件数を増やす</a>`,
-  /** 表のない一覧（ページ送りだけ） */
+  /** List without a table (pager only) */
   paginationWithoutTable: `<div class="pShowMore"><a href="/01p?lsi=25">次</a></div>`,
-  /** しるしのない画面 */
+  /** Page with no markers */
   plain: `<h1>ホーム</h1><p>しるしはありません</p>`,
 } as const;
 
-/** 今の文書の body を、HTML の例で置き換える */
+/** Replaces the current document body with example HTML */
 export function setBodyHtml(source: string): void {
   const parsed = new DOMParser().parseFromString(source, 'text/html');
   const nodes = Array.from(parsed.body.childNodes).map((node) => document.importNode(node, true));
   document.body.replaceChildren(...nodes);
 }
 
-/** このフレームの URL を変える（happy-dom の機能。別オリジンへの history.replaceState はできないため） */
+/** Changes this frame's URL (a happy-dom feature; history.replaceState cannot change origin) */
 export function setFrameUrl(url: string): void {
   (window as unknown as { happyDOM: { setURL: (value: string) => void } }).happyDOM.setURL(url);
 }
 
 const originalTop = Object.getOwnPropertyDescriptor(window, 'top');
 
-/** このフレームを、ほかの画面に埋め込まれたフレーム（true）か最上位（false）にする */
+/** Makes this frame embedded in another page (true) or top-level (false) */
 export function setEmbeddedFrame(embedded: boolean): void {
   const fakeTop = embedded ? ({} as Window) : window;
   Object.defineProperty(window, 'top', { configurable: true, get: () => fakeTop });

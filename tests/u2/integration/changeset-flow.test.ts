@@ -1,5 +1,5 @@
 /**
- * U2 の結合テスト。入口（src/changeset/index.ts・src/salesforce/index.ts）を、fetch の差し替えだけで動かす。
+ * U2 integration test. Drives the entry points (src/changeset/index.ts, src/salesforce/index.ts) with only fetch stubbed.
  */
 import { readFileSync, readdirSync } from 'node:fs';
 import { join, resolve } from 'node:path';
@@ -61,7 +61,7 @@ async function runAddFlow() {
   return { preconditions, candidates, target, added };
 }
 
-/** ディレクトリの中の .ts ファイルを集める */
+/** Collects the .ts files in a directory */
 function listSourceFiles(dir: string): string[] {
   return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
     const path = join(dir, entry.name);
@@ -70,12 +70,12 @@ function listSourceFiles(dir: string): string[] {
   });
 }
 
-describe('U2 の入口からの流れ（結合テスト）', () => {
+describe('Flow from the U2 entry points (integration test)', () => {
   beforeEach(() => {
     useSalesforceLocation();
   });
 
-  it('3 ページの変更セットを読み、進み具合と 1 つにまとめた結果が返る', async () => {
+  it('reads a three-page change set and returns progress and the merged result', async () => {
     installFetchMock()
       .route(DETAIL_PAGE_1, html(readFixture('detail-page1.html')))
       .route(DETAIL_PAGE_2, html(readFixture('detail-page2.html')))
@@ -92,7 +92,7 @@ describe('U2 の入口からの流れ（結合テスト）', () => {
     expect(progress.map((value) => value.loadedPages)).toEqual([1, 2, 3]);
   });
 
-  it('2 ページ目でログインが切れると、読めた分が complete: false で返る', async () => {
+  it('when the session expires on page 2, returns what was read with complete: false', async () => {
     installFetchMock()
       .route(DETAIL_PAGE_1, html(readFixture('detail-page1.html')))
       .route(DETAIL_PAGE_2, html(readFixture('login.html')));
@@ -113,7 +113,7 @@ describe('U2 の入口からの流れ（結合テスト）', () => {
     });
   });
 
-  it('追加の前の確認から、候補の読み込み・追加・読み直しまでが通る', async () => {
+  it('runs through the pre-add check, loading candidates, adding and the reload', async () => {
     routeAddFlow();
 
     const { preconditions, candidates, target, added } = await runAddFlow();
@@ -124,7 +124,7 @@ describe('U2 の入口からの流れ（結合テスト）', () => {
     expect(added).toEqual({ ok: true, value: undefined });
   });
 
-  it('送り先はすべて location.origin の中である（NFR1.1、NFR4.1）', async () => {
+  it('every destination is within location.origin (NFR1.1, NFR4.1)', async () => {
     const mock = routeAddFlow();
 
     await runAddFlow();
@@ -136,7 +136,7 @@ describe('U2 の入口からの流れ（結合テスト）', () => {
     }
   });
 
-  it('どの失敗でも例外が外に出ず、失敗の Result が返る（NFR5.1）', async () => {
+  it('no failure throws; each returns a failed Result (NFR5.1)', async () => {
     const failures: MockReply[] = [
       networkError(),
       redirect(),
@@ -162,7 +162,7 @@ describe('U2 の入口からの流れ（結合テスト）', () => {
     }
   });
 
-  it('U2 のコードは U1 の部品（設定・エラーの記録・保存）を読み込まない（C6）', () => {
+  it('U2 code never imports U1 parts (settings, error log, storage) (C6)', () => {
     const root = resolve(process.cwd(), 'src');
     const files = [
       ...listSourceFiles(join(root, 'salesforce')),
@@ -175,7 +175,7 @@ describe('U2 の入口からの流れ（結合テスト）', () => {
       const source = readFileSync(file, 'utf8');
       const specifiers = [...source.matchAll(/from\s+'([^']+)'/g)].map((match) => match[1] ?? '');
       for (const specifier of specifiers) {
-        expect(specifier, `${file} の import`).toMatch(allowed);
+        expect(specifier, `import in ${file}`).toMatch(allowed);
         expect(specifier).not.toMatch(/settings|errors|storage/);
       }
     }

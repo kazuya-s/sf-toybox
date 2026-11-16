@@ -1,9 +1,9 @@
-# 作者と AI-DLC の記録（整形の対象にしない）
+# Author's and AI-DLC records (not formatted)
 aidlc/
 .claude/
 .gitignore
 
-# 依存とビルド・テストの出力
+# Dependencies and build/test output
 node_modules/
 .output/
 .wxt/

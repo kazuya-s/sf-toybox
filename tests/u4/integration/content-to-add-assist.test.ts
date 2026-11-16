@@ -1,8 +1,8 @@
 /**
- * 入口から追加の結果までの結合テスト（U4 cicd-pipeline.md 段階 4、NFR7.2、NFR7.5、NFR8.1、NFR5.1）。
- * 本物の入口（entrypoints/salesforce.content.ts）・判定・設定・エラーの記録・部品の読み込み・状態・画面を、
- * U2 の差し替え（tests/u4/helpers/u2-mock.ts）だけでつなぐ。
- * 部品の読み込みは本物の import(chrome.runtime.getURL(...)) を通し、getURL だけをビルドの代わりのファイルへ向ける。
+ * Integration test from the entry to the add result (U4 cicd-pipeline.md stage 4, NFR7.2, NFR7.5, NFR8.1, NFR5.1).
+ * Wires the real entry (entrypoints/salesforce.content.ts), detection, settings, error log, widget loading, state and UI
+ * with only the U2 stub (tests/u4/helpers/u2-mock.ts).
+ * Widget loading goes through the real import(chrome.runtime.getURL(...)); only getURL points at the build stand-in.
  */
 import { act, fireEvent, waitFor, within } from '@testing-library/react';
 import { resolve } from 'node:path';
@@ -27,12 +27,12 @@ vi.mock('../../../src/salesforce/index', async () =>
   (await import('../helpers/u2-mock')).mockSalesforceModule(),
 );
 
-/** ビルドした changeset-add-assist.js の代わり（WXT の包み方をまねたもの） */
+/** Stand-in for the built changeset-add-assist.js (mimicking WXT's wrapping) */
 const BUILT_ENTRY = resolve(process.cwd(), 'tests/u4/helpers/built-entry.ts');
 
 /**
- * 設定画面への登録（TOOL_DEFINITIONS）は U3 が受け持つ。U3 がまだ入っていないときだけ、
- * 登録された状態をここで作り、OFF の保存値が本物の isEnabled で読まれるようにする。
+ * Registration on the options page (TOOL_DEFINITIONS) belongs to U3. Only when U3 is not in yet,
+ * the registered state is created here so the stored OFF value is read by the real isEnabled.
  */
 const ADD_ASSIST_DEFINITION = {
   toolId: 'changeset-add-assist',
@@ -45,7 +45,7 @@ let registeredHere = false;
 
 function shadowOf(): ReturnType<typeof within> {
   const host = document.querySelector(`[${ADD_ASSIST_HOST_ATTRIBUTE}]`);
-  if (!host?.shadowRoot) throw new Error('追加支援が置かれていません');
+  if (!host?.shadowRoot) throw new Error('The add assistant is not mounted');
   return within(host.shadowRoot as unknown as HTMLElement);
 }
 
@@ -61,7 +61,7 @@ function errorLogKeys(): unknown[] {
   return log.map((entry) => entry.messageKey);
 }
 
-describe('入口から追加支援まで（content-to-add-assist）', () => {
+describe('From the entry to the add assistant (content-to-add-assist)', () => {
   let getUrl: ReturnType<typeof vi.spyOn>;
 
   beforeAll(() => {
@@ -91,7 +91,7 @@ describe('入口から追加支援まで（content-to-add-assist）', () => {
     restoreFrame();
   });
 
-  it('OFF のとき、または「追加」画面でないときは、部品を読み込まず U2 も呼ばない（NFR7.2、BR1.1）', async () => {
+  it('when OFF or not on the "Add" page, the widget is not loaded and U2 is not called (NFR7.2, BR1.1)', async () => {
     mockState().local.settings = validSettings({ 'changeset-add-assist': { enabled: false } });
     await runOn(ADD_PAGE_URL);
     expect(getUrl).not.toHaveBeenCalledWith(CHANGESET_ADD_ASSIST_PATH);
@@ -104,7 +104,7 @@ describe('入口から追加支援まで（content-to-add-assist）', () => {
     expect(u2.callLog).toEqual([]);
   });
 
-  it('ON の「追加」画面では部品が置かれ、3 つの呼び出しが同時に始まる（NFR7.5）', async () => {
+  it('on the "Add" page with the tool ON, the widget mounts and the three calls start together (NFR7.5)', async () => {
     const name = u2.getChangeSet.nextDeferred();
 
     await runOn(ADD_PAGE_URL);
@@ -122,7 +122,7 @@ describe('入口から追加支援まで（content-to-add-assist）', () => {
     expect(shadowOf().getByTestId('addassist-target')).toHaveTextContent('追加先: Test Change Set');
   });
 
-  it('選んで追加し、結果が出るまでの流れ（BR3.1、BR3.4）', async () => {
+  it('select, add, and see the result (BR3.1, BR3.4)', async () => {
     await runOn(ADD_PAGE_URL);
     const shadow = shadowOf();
 
@@ -149,7 +149,7 @@ describe('入口から追加支援まで（content-to-add-assist）', () => {
     );
   });
 
-  it('2 件目で失敗すると止まり、結果に 3 つの一覧が出る（BR3.3、NFR3.5）', async () => {
+  it('a failure on the second item stops and the result shows three lists (BR3.3, NFR3.5)', async () => {
     await runOn(ADD_PAGE_URL);
     const shadow = shadowOf();
     for (const key of ['00N000000000001', '00N000000000002', '00N000000000005']) {
@@ -167,7 +167,7 @@ describe('入口から追加支援まで（content-to-add-assist）', () => {
     expect(shadow.getByTestId('addassist-result-untried')).toHaveTextContent('TestNote__c');
   });
 
-  it('部品の読み込みに失敗しても例外が外に出ず、記録され、画面の問い合わせへの応答は続く（NFR5.1）', async () => {
+  it('a widget load failure never escapes, is logged, and the page-query responder keeps working (NFR5.1)', async () => {
     getUrl.mockImplementation(() => resolve(process.cwd(), 'tests/u4/helpers/missing-entry.ts'));
 
     await expect(runOn(ADD_PAGE_URL)).resolves.toBeUndefined();
@@ -183,7 +183,7 @@ describe('入口から追加支援まで（content-to-add-assist）', () => {
     });
   });
 
-  it('組織の種類（ホスト名）で動きを変えない（NFR8.1、BR3.8）', async () => {
+  it('behavior does not depend on the org type (host name) (NFR8.1, BR3.8)', async () => {
     const hosts = ['example.my.salesforce.com', 'example--dev.sandbox.my.salesforce.com'];
     for (const host of hosts) {
       u2.reset();

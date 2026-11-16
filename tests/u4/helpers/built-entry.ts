@@ -1,8 +1,8 @@
 /**
- * ビルドした changeset-add-assist.js の代わり（結合テスト用）。
- * WXT はビルドのときに、後から読み込む部品の既定の書き出しを main() の戻り値にする
- * （.output/chrome-mv3/page-size-bar.js の末尾と同じ形）。ここではその包み方だけをまね、
- * 中身は本物の entrypoints/changeset-add-assist.ts を使う。
+ * Stand-in for the built changeset-add-assist.js (for the integration test).
+ * At build time WXT makes a lazily loaded chunk's default export the return value of main()
+ * (same shape as the end of .output/chrome-mv3/page-size-bar.js). This mimics only that wrapping;
+ * the content is the real entrypoints/changeset-add-assist.ts.
  */
 import entry from '../../../entrypoints/changeset-add-assist';
 

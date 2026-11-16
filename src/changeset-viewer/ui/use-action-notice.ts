@@ -1,4 +1,4 @@
-/** 出力の結果を 2 秒だけ示す（BR3.8） */
+/** Shows the output result for 2 seconds (BR3.8) */
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { ActionNoticeKind } from './Footer';
 

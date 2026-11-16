@@ -1,7 +1,7 @@
 /**
- * 結合テスト: ツールバーの画面（本物の ChangeSetViewerApp と popup-client）と、
- * ページ側（本物の U1 の画面の判定への応答と U3 の受け取りの処理）を、模擬のメッセージでつなぐ。
- * U2 の listComponents だけを差し替える。
+ * Integration test: wires the popup (the real ChangeSetViewerApp and popup-client) and
+ * the page side (the real U1 page-detection responder and U3 handler) with mocked messaging.
+ * Only U2's listComponents is stubbed.
  */
 import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -35,7 +35,7 @@ const detailPage: PageInfo = {
   orgHost: 'example.my.salesforce.com',
 };
 
-/** ページ側: U1 の応答と U3 の受け取りを登録する（入口と同じ順） */
+/** Page side: registers the U1 responder and the U3 handler (same order as the entry) */
 async function startPageSide(): Promise<void> {
   registerPageInfoResponder(() => detailPage);
   await registerChangesetViewerHandler(detailPage);
@@ -67,7 +67,7 @@ async function openPopup() {
 
 let spies: OutputSpies;
 
-describe('ツールバーの画面からページ側までの流れ', () => {
+describe('Flow from the popup to the page', () => {
   beforeEach(async () => {
     spies = installOutputSpies();
     vi.spyOn(console, 'error').mockImplementation(() => undefined);
@@ -83,7 +83,7 @@ describe('ツールバーの画面からページ側までの流れ', () => {
     restoreOutputSpies();
   });
 
-  it('一覧が表示されるまで: 画面の判定 → 一覧の頼み → 進み具合 → 表示', async () => {
+  it('until the list shows: page detection -> list request -> progress -> render', async () => {
     await openPopup();
 
     expect(await screen.findByTestId('viewer-table')).toBeInTheDocument();
@@ -92,11 +92,11 @@ describe('ツールバーの画面からページ側までの流れ', () => {
       expect.objectContaining({ changeSetId: CHANGE_SET_ID }),
     );
     expect(popupState().runtimeMessages).toHaveLength(1);
-    // 読み込みが終わったら、進み具合の聞き手は外れている（応答の聞き手 2 つだけが残る）
+    // Once loading is done the progress listener is removed (only the two responders remain)
     expect(mockState().messageListeners).toHaveLength(2);
   });
 
-  it('2 ページ目で失敗すると partial（読めた分を表示し、帯を出す）', async () => {
+  it('a failure on page 2 is partial (shows what was read, with the banner)', async () => {
     listComponentsMock.mockImplementation(async ({ onProgress }: ListComponentsRequest) => {
       onProgress?.({ loadedPages: 1, totalPages: 2 });
       return ok({ ...loadComponents('components-basic'), complete: false, failedPages: 1 });
@@ -107,7 +107,7 @@ describe('ツールバーの画面からページ側までの流れ', () => {
     expect(screen.getByTestId('viewer-count')).toHaveTextContent('表示中 3 件 / 全 3 件');
   });
 
-  it('ログイン切れで session-expired', async () => {
+  it('session expiry gives session-expired', async () => {
     listComponentsMock.mockResolvedValue(fail('sessionExpired', 'login page'));
     await openPopup();
 
@@ -116,7 +116,7 @@ describe('ツールバーの画面からページ側までの流れ', () => {
     );
   });
 
-  it('読み直さない: 絞り込みと並べ替えを何度しても、ページ側への頼みは 1 回（NFR7.4）', async () => {
+  it('no re-request: however often you filter and sort, the page is asked once (NFR7.4)', async () => {
     listComponentsMock.mockResolvedValue(ok(buildManyComponents()));
     const user = await openPopup();
     await screen.findByTestId('viewer-table');
@@ -133,7 +133,7 @@ describe('ツールバーの画面からページ側までの流れ', () => {
     expect(componentRequests()).toHaveLength(1);
   });
 
-  it('コピーの文字は、表に出ている行を表の順で出す（BR3.1）', async () => {
+  it('copied text contains the displayed rows in table order (BR3.1)', async () => {
     const user = await openPopup();
     await screen.findByTestId('viewer-table');
     await user.click(screen.getByTestId('viewer-sort-api-name'));
@@ -150,7 +150,7 @@ describe('ツールバーの画面からページ側までの流れ', () => {
     expect(lines.slice(1)).toEqual(tableAsTsv);
   });
 
-  it('失敗の記録に名前が入らない（NFR1.3）', async () => {
+  it('failure logs contain no names (NFR1.3)', async () => {
     listComponentsMock.mockRejectedValue(new Error('TestChangeSet / TestField__c broke'));
     await openPopup();
 

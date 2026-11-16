@@ -1,18 +1,18 @@
-// テストの HTML の例に、組織のデータが入っていないことを確かめる（U2 cicd-pipeline.md「テストの HTML の例」）。
-// U3 で、tests/u3/fixtures/・tests/u4/fixtures/ の JSON のテストのデータの確認を足した（U3 cicd-pipeline.md「テストのデータ」）。
-// 使い方: node scripts/check-fixtures.mjs [--dir tests/u2/fixtures]
-// CI では段階 4（テスト）の前に流す。足すときの手順は tests/u2/fixtures/README.md。
+// Checks that the test HTML fixtures contain no org data (U2 cicd-pipeline.md, "Test HTML fixtures").
+// U3 added the check for JSON test data in tests/u3/fixtures/ and tests/u4/fixtures/ (U3 cicd-pipeline.md, "Test data").
+// Usage: node scripts/check-fixtures.mjs [--dir tests/u2/fixtures]
+// CI runs it before stage 4 (tests). See tests/u2/fixtures/README.md for how to add fixtures.
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-/** 使ってよい唯一の Salesforce のホスト名 */
+/** The only Salesforce host name allowed */
 export const ALLOWED_HOST = 'example.my.salesforce.com';
 
 const SALESFORCE_HOST_PATTERN = /\b(?:[a-z0-9-]+\.)+(?:salesforce-setup|salesforce|force)\.com\b/gi;
 const EMAIL_PATTERN = /[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}/g;
 const ID_CANDIDATE_PATTERN = /\b[A-Za-z0-9]{15}(?:[A-Za-z0-9]{3})?\b/g;
-/** 架空の ID: 先頭 3 文字（種類を表す部分）のあとが 0 の並び */
+/** Fake IDs: all zeros after the 3-character key prefix */
 const FAKE_ID_PATTERN = /^[A-Za-z0-9]{3}0{9}/;
 const LONG_TOKEN_PATTERN = /[A-Za-z0-9]{32,}/g;
 const INPUT_TAG_PATTERN = /<input\b[^>]*>/gi;
@@ -31,7 +31,7 @@ function findHosts(text) {
     .filter((host) => host.toLowerCase() !== ALLOWED_HOST);
 }
 
-/** 15 文字か 18 文字の英数字で、数字を含み、0 の並びでないもの */
+/** 15- or 18-character alphanumeric strings that contain a digit and are not all zeros */
 function findRealIds(text) {
   return [...text.matchAll(ID_CANDIDATE_PATTERN)]
     .map((match) => match[0])
@@ -48,22 +48,22 @@ function findHiddenValues(text) {
 }
 
 /**
- * 1 つの HTML の例を確かめ、見つかった問題の一覧を返す。
- * 値そのものは出さず、種類と件数だけを書く（組織のデータをログに残さないため）。
+ * Checks one HTML fixture and returns the problems found.
+ * Reports only the kind and count, never the values themselves (so no org data reaches the logs).
  * @param {string} name @param {string} text
  * @returns {string[]}
  */
 export function checkFixtureText(name, text) {
   const checks = [
-    [findHosts(text), `${ALLOWED_HOST} 以外の Salesforce のホスト名があります`],
-    [[...text.matchAll(EMAIL_PATTERN)], 'メールアドレスがあります'],
-    [findRealIds(text), '0 の並びでない 15 文字か 18 文字の ID があります'],
-    [[...text.matchAll(LONG_TOKEN_PATTERN)], '32 文字以上の英数字の並びがあります'],
-    [findHiddenValues(text), 'test- で始まらない隠し項目の値があります'],
+    [findHosts(text), `has a Salesforce host name other than ${ALLOWED_HOST}`],
+    [[...text.matchAll(EMAIL_PATTERN)], 'has an email address'],
+    [findRealIds(text), 'has a 15- or 18-character ID that is not all zeros'],
+    [[...text.matchAll(LONG_TOKEN_PATTERN)], 'has an alphanumeric run of 32 or more characters'],
+    [findHiddenValues(text), 'has a hidden field value that does not start with test-'],
   ];
   return checks
     .filter(([found]) => found.length > 0)
-    .map(([found, problem]) => `${name}: ${problem}（${found.length} 件）`);
+    .map(([found, problem]) => `${name}: ${problem} (${found.length})`);
 }
 
 /** @param {string} dir @returns {string[]} */
@@ -77,12 +77,12 @@ function listHtmlFiles(dir) {
 }
 
 /**
- * フォルダの中の HTML の例をすべて確かめる。
+ * Checks every HTML fixture in a folder.
  * @param {{ dir: string }} options
  * @returns {{ errors: string[], checked: number }}
  */
 export function checkFixtures({ dir }) {
-  if (!existsSync(dir)) return { errors: [`${dir} がありません`], checked: 0 };
+  if (!existsSync(dir)) return { errors: [`${dir} does not exist`], checked: 0 };
   const files = listHtmlFiles(dir);
   const errors = files.flatMap((path) =>
     checkFixtureText(relative(dir, path), readFileSync(path, 'utf8')),
@@ -90,17 +90,17 @@ export function checkFixtures({ dir }) {
   return { errors, checked: files.length };
 }
 
-// ---- JSON のテストのデータ（U3 cicd-pipeline.md「テストのデータ」） ----
+// ---- JSON test data (U3 cicd-pipeline.md, "Test data") ----
 
-/** JSON のテストのデータを調べる場所（U3・U4 で使う。ないフォルダは飛ばす） */
+/** Folders holding JSON test data (used by U3 and U4; missing folders are skipped) */
 export const JSON_FIXTURE_DIRS = ['tests/u3/fixtures', 'tests/u4/fixtures'];
 
-/** 値が Test で始まらなければならない名前の欄（null は除く） */
+/** Name fields whose values must start with Test (null excluded) */
 const NAME_FIELDS = ['name', 'apiName', 'parentObject'];
 
 /**
- * JSON の値（キーではない）の文字を、その値の欄の名前と一緒に集める。
- * 配列の中の値は、配列の欄の名前を引き継ぐ。
+ * Collects the JSON values (not the keys) as strings, together with the name of their field.
+ * Values inside an array inherit the array field's name.
  * @param {unknown} value @param {string | null} key @param {{ key: string | null, text: string }[]} out
  */
 function collectStrings(value, key, out) {
@@ -117,8 +117,8 @@ function countAll(values, find) {
 }
 
 /**
- * 1 つの JSON のテストのデータを確かめ、見つかった問題の一覧を返す。
- * 値そのものは出さず、種類と件数だけを書く。
+ * Checks one JSON test data file and returns the problems found.
+ * Reports only the kind and count, never the values themselves.
  * @param {string} name @param {string} text
  * @returns {string[]}
  */
@@ -127,7 +127,7 @@ export function checkJsonFixtureText(name, text) {
   try {
     data = JSON.parse(text);
   } catch {
-    return [`${name}: JSON として読めません`];
+    return [`${name}: cannot be parsed as JSON`];
   }
   /** @type {{ key: string | null, text: string }[]} */
   const values = [];
@@ -137,18 +137,18 @@ export function checkJsonFixtureText(name, text) {
       value.key !== null && NAME_FIELDS.includes(value.key) && !value.text.startsWith('Test'),
   );
   const checks = [
-    [countAll(values, findHosts), `${ALLOWED_HOST} 以外の Salesforce のホスト名があります`],
-    [countAll(values, (t) => [...t.matchAll(EMAIL_PATTERN)]), 'メールアドレスがあります'],
-    [countAll(values, findRealIds), '0 の並びでない 15 文字か 18 文字の ID があります'],
+    [countAll(values, findHosts), `has a Salesforce host name other than ${ALLOWED_HOST}`],
+    [countAll(values, (t) => [...t.matchAll(EMAIL_PATTERN)]), 'has an email address'],
+    [countAll(values, findRealIds), 'has a 15- or 18-character ID that is not all zeros'],
     [
       countAll(values, (t) => [...t.matchAll(LONG_TOKEN_PATTERN)]),
-      '32 文字以上の英数字の並びがあります',
+      'has an alphanumeric run of 32 or more characters',
     ],
-    [badNames, `名前の欄（${NAME_FIELDS.join('・')}）に Test で始まらない値があります`],
+    [badNames, `has a value not starting with Test in a name field (${NAME_FIELDS.join(', ')})`],
   ];
   return checks
     .filter(([found]) => found.length > 0)
-    .map(([found, problem]) => `${name}: ${problem}（${found.length} 件）`);
+    .map(([found, problem]) => `${name}: ${problem} (${found.length})`);
 }
 
 /** @param {string} dir @returns {string[]} */
@@ -162,7 +162,7 @@ function listJsonFiles(dir) {
 }
 
 /**
- * いくつかのフォルダの中の JSON のテストのデータをすべて確かめる。ないフォルダは飛ばす。
+ * Checks every JSON test data file in several folders. Missing folders are skipped.
  * @param {{ dirs: string[] }} options
  * @returns {{ errors: string[], checked: number }}
  */
@@ -188,16 +188,16 @@ if (isCli) {
   const { errors, checked } = checkFixtures(parseArgs(process.argv.slice(2)));
   const json = checkJsonFixtures({ dirs: JSON_FIXTURE_DIRS.map((dir) => resolve(dir)) });
   if (errors.length > 0) {
-    console.error('テストの HTML の例の確認: 失敗');
+    console.error('Test HTML fixture check: failed');
     for (const error of errors) console.error(`  - ${error}`);
   } else {
-    console.log(`テストの HTML の例の確認: ${checked} 件すべて通りました`);
+    console.log(`Test HTML fixture check: all ${checked} passed`);
   }
   if (json.errors.length > 0) {
-    console.error('テストの JSON のデータの確認: 失敗');
+    console.error('Test JSON data check: failed');
     for (const error of json.errors) console.error(`  - ${error}`);
   } else {
-    console.log(`テストの JSON のデータの確認: ${json.checked} 件すべて通りました`);
+    console.log(`Test JSON data check: all ${json.checked} passed`);
   }
   if (errors.length > 0 || json.errors.length > 0) process.exit(1);
 }

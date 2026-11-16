@@ -1,6 +1,6 @@
 /**
- * 入口（entrypoints/salesforce.content.ts）の結合テスト。
- * 本物の判定・応答・設定・エラーの記録を、chrome の模擬と件数バーの読み込みの差し替えでつないで動かす。
+ * Integration test of the entry (entrypoints/salesforce.content.ts).
+ * Runs the real detection, responder, settings and error log, wired with the chrome mock and a stubbed bar loader.
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { runSalesforceContent } from '../../../entrypoints/salesforce.content';
@@ -23,7 +23,7 @@ function fakeBarModule() {
   return { mountPageSizeBar, loadPageSizeBar };
 }
 
-describe('入口の流れ（content-entry）', () => {
+describe('Entry flow (content-entry)', () => {
   const originalFetch = globalThis.fetch;
   const originalXhr = globalThis.XMLHttpRequest;
   const fetchSpy = vi.fn(() => {
@@ -50,7 +50,7 @@ describe('入口の流れ（content-entry）', () => {
     globalThis.XMLHttpRequest = originalXhr;
   });
 
-  it('ON の一覧画面では件数バーを読み込んで表示し、応答も登録する（AC2.1.1）', async () => {
+  it('on a list page with the tool ON, loads and shows the bar and registers the responder (AC2.1.1)', async () => {
     const bar = fakeBarModule();
 
     await runSalesforceContent({ loadPageSizeBar: bar.loadPageSizeBar });
@@ -62,7 +62,7 @@ describe('入口の流れ（content-entry）', () => {
     expect(mockState().messageListeners).toHaveLength(1);
   });
 
-  it('OFF では件数バーの部品を読み込まないが、応答は登録する（NFR7.2、AC1.1.4、BR2.6）', async () => {
+  it('when OFF, does not load the bar but still registers the responder (NFR7.2, AC1.1.4, BR2.6)', async () => {
     mockState().local.settings = validSettings({ 'page-size-switcher': { enabled: false } });
     const bar = fakeBarModule();
 
@@ -72,7 +72,7 @@ describe('入口の流れ（content-entry）', () => {
     expect(mockState().messageListeners).toHaveLength(1);
   });
 
-  it('other の画面では読み込まず、応答も登録しない', async () => {
+  it('on an other page, loads nothing and registers no responder', async () => {
     setFrameUrl(urls.plain);
     setBodyHtml(html.plain);
     const bar = fakeBarModule();
@@ -84,7 +84,7 @@ describe('入口の流れ（content-entry）', () => {
     expect(mockState().localGetCalls).toBe(0);
   });
 
-  it('設定が読めないときは ON として表示し、エラーを記録する（NFR5.2）', async () => {
+  it('when settings cannot be read, shows the bar as ON and logs an error (NFR5.2)', async () => {
     setStorageFailure({ get: 'lastError' });
     const bar = fakeBarModule();
 
@@ -98,7 +98,7 @@ describe('入口の流れ（content-entry）', () => {
     );
   });
 
-  it('読み込みに失敗しても例外が外に出ず、記録され、応答は残る（NFR5.1）', async () => {
+  it('a load failure never throws, is logged, and the responder stays (NFR5.1)', async () => {
     const loadPageSizeBar = vi.fn(async (): Promise<PageSizeBarModule> => {
       throw new Error('failed to load page-size-bar.js');
     });
@@ -118,7 +118,7 @@ describe('入口の流れ（content-entry）', () => {
     await expect(answer).resolves.toMatchObject({ ok: true, value: { pageKind: 'pageSizeList' } });
   });
 
-  it('表示で例外が出ても外に出さず記録し、判定より前にも後にも通信をしない（NFR7.3）', async () => {
+  it('a render exception never escapes and is logged; no network before or after detection (NFR7.3)', async () => {
     const mountPageSizeBar = vi.fn(() => {
       throw new Error('mount failed');
     });

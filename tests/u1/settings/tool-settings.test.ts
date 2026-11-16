@@ -3,12 +3,12 @@ import { getAll, isEnabled, setEnabled } from '../../../src/settings/tool-settin
 import { mockState, setStorageFailure } from '../helpers/chrome-mock';
 import { validSettings } from '../fixtures/settings';
 
-describe('ツールの ON/OFF（tool-settings、C1）', () => {
+describe('Tool ON/OFF (tool-settings, C1)', () => {
   beforeEach(() => {
     vi.spyOn(console, 'error').mockImplementation(() => undefined);
   });
 
-  it('初回（保存値なし）は全部 ON（AC1.1.2）', async () => {
+  it('first run (nothing stored) is all ON (AC1.1.2)', async () => {
     const all = await getAll();
 
     expect(all.loadFailed).toBe(false);
@@ -16,7 +16,7 @@ describe('ツールの ON/OFF（tool-settings、C1）', () => {
     expect(all.settings.every((item) => item.enabled)).toBe(true);
   });
 
-  it('OFF にして保存すると、読み直しても OFF（AC1.1.1）', async () => {
+  it('saving OFF keeps it OFF after reloading (AC1.1.1)', async () => {
     const saved = await setEnabled({ toolId: 'page-size-switcher', enabled: false });
 
     expect(saved.ok).toBe(true);
@@ -27,7 +27,7 @@ describe('ツールの ON/OFF（tool-settings、C1）', () => {
     });
   });
 
-  it('読み込みに失敗すると全部 ON で loadFailed、エラーを記録する（AC1.1.5、BR1.3）', async () => {
+  it('a load failure is all ON with loadFailed and logs an error (AC1.1.5, BR1.3)', async () => {
     setStorageFailure({ get: 'lastError' });
 
     const all = await getAll();
@@ -41,7 +41,7 @@ describe('ツールの ON/OFF（tool-settings、C1）', () => {
     );
   });
 
-  it('保存に失敗すると storageFailed を返す（BR1.5）', async () => {
+  it('a save failure returns storageFailed (BR1.5)', async () => {
     setStorageFailure({ set: 'lastError' });
 
     const saved = await setEnabled({ toolId: 'page-size-switcher', enabled: false });
@@ -50,7 +50,7 @@ describe('ツールの ON/OFF（tool-settings、C1）', () => {
     expect(mockState().local.settings).toBeUndefined();
   });
 
-  it('続けて切り替えると順に保存され、後の値が残る（BR1.5）', async () => {
+  it('rapid toggles are saved in order and the last value wins (BR1.5)', async () => {
     const first = setEnabled({ toolId: 'page-size-switcher', enabled: false });
     const second = setEnabled({ toolId: 'page-size-switcher', enabled: true });
     const third = setEnabled({ toolId: 'page-size-switcher', enabled: false });
@@ -67,12 +67,12 @@ describe('ツールの ON/OFF（tool-settings、C1）', () => {
     expect(await isEnabled({ toolId: 'page-size-switcher' })).toBe(false);
   });
 
-  it('保存は今の形で全体を書き、読めなかった古いデータも置き換える（BR1.5）', async () => {
+  it('saves write the whole data in the current shape, replacing unreadable old data (BR1.5)', async () => {
     mockState().local.settings = { schemaVersion: 99, tools: 'broken' };
 
     await setEnabled({ toolId: 'page-size-switcher', enabled: false });
 
-    // 全ツール（U3 で changeset-viewer・changeset-add-assist を一覧に足した）の値で書く
+    // Written with every tool's value (U3 added changeset-viewer and changeset-add-assist to the list)
     expect(mockState().local.settings).toEqual(
       validSettings({
         'page-size-switcher': { enabled: false },
@@ -82,7 +82,7 @@ describe('ツールの ON/OFF（tool-settings、C1）', () => {
     );
   });
 
-  it('isEnabled は読み込みに失敗しても true（FR1.6）', async () => {
+  it('isEnabled is true even when loading fails (FR1.6)', async () => {
     mockState().local.settings = validSettings({ 'page-size-switcher': { enabled: false } });
     setStorageFailure({ get: 'throw' });
 

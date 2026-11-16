@@ -1,6 +1,6 @@
 /**
- * 状態の決め方と、絞り込み・並べ替え（rules.md BR1.4、BR2.1〜BR2.6、performance-design.md §4）。
- * どれも純粋な関数で、ページ側に頼み直さずにツールバーの画面の中だけで計算する（NFR7.4）。
+ * Deciding the state, filtering and sorting (rules.md BR1.4, BR2.1-BR2.6, performance-design.md §4).
+ * All pure functions, computed only inside the popup without re-requesting the page (NFR7.4).
  */
 import type {
   ChangeSetComponent,
@@ -12,13 +12,13 @@ import type {
   ViewerState,
 } from './types';
 
-/** 最初の並び順: 種類の昇順（同じ種類の中は API 名。BR2.1） */
+/** Initial order: type ascending (API name within the same type; BR2.1) */
 export const INITIAL_SORT: SortState = { column: 'componentType', direction: 'ascending' };
 
-/** 絞り込みなし */
+/** No filter */
 export const NO_FILTER: RowFilter = { name: '', type: null };
 
-/** 返事から状態を決める（BR1.4） */
+/** Decides the state from the response (BR1.4) */
 export function stateFromResult(result: ComponentsResult): ResultState {
   if (result.ok) {
     if (!result.value.complete) return 'partial';
@@ -27,18 +27,18 @@ export function stateFromResult(result: ComponentsResult): ResultState {
   return result.error.kind === 'sessionExpired' ? 'session-expired' : 'error';
 }
 
-/** 絞り込みのあとの行が 0 件なら filtered-empty にする（BR2.6） */
+/** Becomes filtered-empty when no rows remain after filtering (BR2.6) */
 export function displayState(base: ViewerState, shownCount: number): ViewerState {
   if ((base === 'default' || base === 'partial') && shownCount === 0) return 'filtered-empty';
   return base;
 }
 
-/** 画面の言語に合わせ、大文字と小文字を区別しない比べ方を作る（1 つ作って使い回す） */
+/** Creates a case-insensitive comparer for the UI language (create once and reuse) */
 export function createCollator(locale: string): Intl.Collator {
   return new Intl.Collator(locale, { sensitivity: 'base', numeric: false });
 }
 
-/** 列見出しを押したあとの並べ替え（BR2.2） */
+/** Sort after a column header is clicked (BR2.2) */
 export function nextSort(current: SortState, column: SortColumn): SortState {
   if (current.column !== column) return { column, direction: 'ascending' };
   return { column, direction: current.direction === 'ascending' ? 'descending' : 'ascending' };
@@ -48,14 +48,14 @@ function valueOf(row: ChangeSetComponent, column: SortColumn): string {
   return row[column] ?? '';
 }
 
-/** 同じ値の行は、種類、API 名の順で並べる（BR2.2） */
+/** Rows with equal values are ordered by type, then API name (BR2.2) */
 function compareTieBreak(a: ChangeSetComponent, b: ChangeSetComponent, collator: Intl.Collator) {
   return (
     collator.compare(a.componentType, b.componentType) || collator.compare(a.apiName, b.apiName)
   );
 }
 
-/** 並べ替えた新しい配列を返す（元の配列は変えない） */
+/** Returns a new sorted array (the original is not changed) */
 export function sortRows(
   rows: readonly ChangeSetComponent[],
   sort: SortState,
@@ -69,7 +69,7 @@ export function sortRows(
   );
 }
 
-/** 名前（API 名の一部、大文字と小文字を区別しない。BR2.3）と種類（BR2.4）で絞り込む */
+/** Filters by name (part of the API name, case-insensitive; BR2.3) and type (BR2.4) */
 export function filterRows(
   rows: readonly ChangeSetComponent[],
   filter: RowFilter,
@@ -82,7 +82,7 @@ export function filterRows(
   );
 }
 
-/** 種類の選択肢: 一覧にある種類だけを、BR2.1 と同じ順で（BR2.4） */
+/** Type options: only types in the list, in the same order as BR2.1 (BR2.4) */
 export function typeOptions(
   rows: readonly ChangeSetComponent[],
   collator: Intl.Collator,
@@ -90,7 +90,7 @@ export function typeOptions(
   return [...new Set(rows.map((row) => row.componentType))].sort((a, b) => collator.compare(a, b));
 }
 
-/** 絞り込んでいるか */
+/** Whether a filter is applied */
 export function isFiltering(filter: RowFilter): boolean {
   return filter.name.trim() !== '' || filter.type !== null;
 }

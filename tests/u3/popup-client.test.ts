@@ -1,6 +1,6 @@
 /**
- * ツールバーの画面からの問い合わせ（src/changeset-viewer/popup-client.ts）。
- * chrome.tabs は tests/u3/helpers/chrome-popup.ts の模擬で、答える・遅れる・答えない・すぐ失敗するを切り替える。
+ * Requests from the popup (src/changeset-viewer/popup-client.ts).
+ * chrome.tabs is the mock in tests/u3/helpers/chrome-popup.ts, switching between answer, delay, no answer and immediate failure.
  */
 import { describe, expect, it, vi } from 'vitest';
 import type { LoadProgress } from '../../src/changeset';
@@ -37,8 +37,8 @@ const progressMessage = (loadedPages: number, changeSetId = CHANGE_SET_ID) => ({
   progress: { loadedPages, totalPages: 3 },
 });
 
-describe('ツールバーの画面からの問い合わせ（popup-client）', () => {
-  it('詳細画面の答えで changeSetId が返る（BR1.2）', async () => {
+describe('Requests from the popup (popup-client)', () => {
+  it('returns changeSetId from a detail page answer (BR1.2)', async () => {
     setTabMessageBehavior(PAGE_INFO_CHANNEL, { kind: 'respond', response: ok(detailInfo) });
 
     await expect(askPageInfo(ACTIVE_TAB_ID)).resolves.toEqual({
@@ -50,7 +50,7 @@ describe('ツールバーの画面からの問い合わせ（popup-client）', (
     ]);
   });
 
-  it('答えがない（3 秒）、送信の失敗、失敗の答え、詳細画面でない、changeSetId なしは wrong-page', async () => {
+  it('no answer (3 seconds), a send failure, a failed answer, not a detail page, or no changeSetId is wrong-page', async () => {
     vi.useFakeTimers();
     setTabMessageBehavior(PAGE_INFO_CHANNEL, { kind: 'silent' });
     const silent = askPageInfo(ACTIVE_TAB_ID);
@@ -77,7 +77,7 @@ describe('ツールバーの画面からの問い合わせ（popup-client）', (
     await expect(askPageInfo(ACTIVE_TAB_ID)).resolves.toEqual({ kind: 'wrong-page' });
   });
 
-  it('進み具合は、ほかのタブ・ほかの拡張機能・ほかの changeSetId のものを捨てる（NFR7.2）', async () => {
+  it('progress from another tab, another extension or another changeSetId is dropped (NFR7.2)', async () => {
     setTabMessageBehavior(CHANGESET_COMPONENTS_CHANNEL, { kind: 'silent' });
     const received: LoadProgress[] = [];
     vi.useFakeTimers();
@@ -102,7 +102,7 @@ describe('ツールバーの画面からの問い合わせ（popup-client）', (
     await pending;
   });
 
-  it('送信がすぐに失敗したら error（notFound）、5 分で返事がなければ error（timeout）（BR1.4）', async () => {
+  it('an immediate send failure is error (notFound); no response in 5 minutes is error (timeout) (BR1.4)', async () => {
     setTabMessageBehavior(CHANGESET_COMPONENTS_CHANNEL, { kind: 'fail' });
     await expect(
       requestComponents(ACTIVE_TAB_ID, CHANGE_SET_ID, () => undefined),
@@ -131,7 +131,7 @@ describe('ツールバーの画面からの問い合わせ（popup-client）', (
     ).resolves.toMatchObject({ ok: false, error: { kind: 'sessionExpired' } });
   });
 
-  it('終わったら聞き手を外し、一覧の結果をそのまま返す', async () => {
+  it('removes the listener when done and returns the list result as is', async () => {
     const result = ok(loadComponents('components-basic'));
     setTabMessageBehavior(CHANGESET_COMPONENTS_CHANNEL, {
       kind: 'respond',
@@ -150,7 +150,7 @@ describe('ツールバーの画面からの問い合わせ（popup-client）', (
     });
   });
 
-  it('タブの URL を使わない（tabs.query の結果の id だけ）。タブがなければ null', async () => {
+  it('never uses the tab URL (only the id from tabs.query); null when there is no tab', async () => {
     const tab = { id: ACTIVE_TAB_ID, active: true };
     const urlGetter = vi.fn(() => 'https://example.my.salesforce.com/');
     Object.defineProperty(tab, 'url', { get: urlGetter });

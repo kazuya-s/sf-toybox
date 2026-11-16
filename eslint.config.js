@@ -3,80 +3,83 @@ import tseslint from 'typescript-eslint';
 import react from 'eslint-plugin-react';
 import reactHooks from 'eslint-plugin-react-hooks';
 
-// 禁止の一覧（U1・U2 の security-design.md、cicd-pipeline.md 段階 2）。
-// ESLint の設定では、後のブロックで同じ規則を書くと前の一覧を置き換えるため、
-// 禁止の一覧はここにまとめ、各ブロックで合わせて広げて書く。U3・U4 はここに足す。
+// Ban lists (U1/U2 security-design.md, cicd-pipeline.md stage 2).
+// In ESLint flat config a later block that sets the same rule replaces the earlier list,
+// so the lists live here and each block spreads them together. U3/U4 add to these.
 
-/** 通信の機能（NFR1.1、NFR4.1）。例外は src/salesforce/connection.ts の fetch だけ */
+/** Network APIs (NFR1.1, NFR4.1). The only exception is fetch in src/salesforce/connection.ts */
 const NETWORK_GLOBALS = [
-  { name: 'fetch', message: '通信は src/salesforce/connection.ts だけで行います（NFR1.1）。' },
+  {
+    name: 'fetch',
+    message: 'Network calls are made only in src/salesforce/connection.ts (NFR1.1).',
+  },
   {
     name: 'XMLHttpRequest',
-    message: '通信は src/salesforce/connection.ts の fetch だけで行います（NFR1.1）。',
+    message: 'Network calls are made only by fetch in src/salesforce/connection.ts (NFR1.1).',
   },
   {
     name: 'WebSocket',
-    message: '通信は src/salesforce/connection.ts の fetch だけで行います（NFR1.1）。',
+    message: 'Network calls are made only by fetch in src/salesforce/connection.ts (NFR1.1).',
   },
 ];
 
-/** 保存の手段（U2 NFR1.2） */
+/** Storage APIs (U2 NFR1.2) */
 const STORAGE_GLOBALS = ['localStorage', 'sessionStorage', 'indexedDB'].map((name) => ({
   name,
-  message: 'U2 のコードでは保存をしません（NFR1.2）。',
+  message: 'This code does not store data (NFR1.2).',
 }));
 
-/** すべてのファイルで使わないプロパティ（U1 NFR3.3） */
+/** Properties banned in every file (U1 NFR3.3) */
 const BASE_RESTRICTED_PROPERTIES = [
-  { property: 'innerHTML', message: 'innerHTML は使いません（NFR3.3）。' },
-  { property: 'outerHTML', message: 'outerHTML は使いません（NFR3.3）。' },
+  { property: 'innerHTML', message: 'Do not use innerHTML (NFR3.3).' },
+  { property: 'outerHTML', message: 'Do not use outerHTML (NFR3.3).' },
 ];
 
-/** window. や globalThis. を付けた通信の書き方（U2 NFR1.1） */
+/** Network calls written with window. or globalThis. (U2 NFR1.1) */
 const NETWORK_PROPERTIES = ['window', 'globalThis'].flatMap((object) =>
   ['fetch', 'XMLHttpRequest', 'WebSocket'].map((property) => ({
     object,
     property,
-    message: '通信は src/salesforce/connection.ts の fetch だけで行います（NFR1.1）。',
+    message: 'Network calls are made only by fetch in src/salesforce/connection.ts (NFR1.1).',
   })),
 );
 
-/** 保存とクッキーの手段（U2 NFR1.2、NFR2.2） */
+/** Storage and cookie APIs (U2 NFR1.2, NFR2.2) */
 const STORAGE_PROPERTIES = [
-  { object: 'chrome', property: 'storage', message: 'U2 のコードでは保存をしません（NFR1.2）。' },
+  { object: 'chrome', property: 'storage', message: 'This code does not store data (NFR1.2).' },
   {
     object: 'document',
     property: 'cookie',
-    message: 'クッキーは読みません（NFR2.2）。',
+    message: 'Cookies are never read (NFR2.2).',
   },
-  { object: 'chrome', property: 'cookies', message: 'クッキーは読みません（NFR2.2）。' },
+  { object: 'chrome', property: 'cookies', message: 'Cookies are never read (NFR2.2).' },
   ...['window', 'globalThis'].flatMap((object) =>
     ['localStorage', 'sessionStorage', 'indexedDB'].map((property) => ({
       object,
       property,
-      message: 'U2 のコードでは保存をしません（NFR1.2）。',
+      message: 'This code does not store data (NFR1.2).',
     })),
   ),
 ];
 
-/** ホスト名で処理を分けない（U2 NFR8.1）。window.location.host の形も含む */
+/** Never branch on the host name (U2 NFR8.1). Includes the window.location.host form */
 const HOST_SYNTAX = [
   {
     selector: "MemberExpression[object.name='location'][property.name=/^(hostname|host)$/]",
-    message: '送り先は location.origin だけで作ります（NFR8.1）。',
+    message: 'Build request URLs from location.origin only (NFR8.1).',
   },
   {
     selector:
       "MemberExpression[object.property.name='location'][property.name=/^(hostname|host)$/]",
-    message: '送り先は location.origin だけで作ります（NFR8.1）。',
+    message: 'Build request URLs from location.origin only (NFR8.1).',
   },
 ];
 
-/** U2 のファイル（Salesforce とのやり取りと変更セット） */
+/** U2 files (Salesforce connection and change sets) */
 const U2_FILES = ['src/salesforce/**/*.{ts,tsx}', 'src/changeset/**/*.{ts,tsx}'];
 const U2_CONNECTION_FILE = 'src/salesforce/connection.ts';
 
-/** U2 のファイルに掛ける規則。connection.ts では globals だけを差し替える */
+/** Rules for U2 files. connection.ts only swaps the globals list */
 function u2Rules(globals) {
   return {
     'no-restricted-globals': ['error', ...globals],
@@ -90,24 +93,23 @@ function u2Rules(globals) {
   };
 }
 
-/** U4 のファイル（追加支援の部品と、その後から読み込む入口） */
+/** U4 files (the add-assist widget and its lazily loaded entry) */
 const U4_FILES = ['src/changeset-add-assist/**/*.{ts,tsx}', 'entrypoints/changeset-add-assist.ts'];
-/** addComponent を呼んでよい、ただ 1 つの U4 のファイル（U4 NFR3.3） */
+/** The only U4 file allowed to call addComponent (U4 NFR3.3) */
 const U4_STATE_FILE = 'src/changeset-add-assist/state.ts';
 
-/** U2 の追加の関数を、state.ts の外で読み込ませない（U4 NFR3.3） */
+/** Do not import U2's add function outside state.ts (U4 NFR3.3) */
 const ADD_COMPONENT_IMPORT = {
   patterns: [
     {
       regex: '(^|/)(salesforce(/index)?|changeset/add-component)$',
       importNames: ['addComponent'],
-      message:
-        'addComponent は src/changeset-add-assist/state.ts の runAdd だけで使います（NFR3.3）。',
+      message: 'addComponent is used only by runAdd in src/changeset-add-assist/state.ts (NFR3.3).',
     },
   ],
 };
 
-/** U4 のファイルに掛ける規則。state.ts だけ addComponent の読み込みの禁止を外す */
+/** Rules for U4 files. Only state.ts lifts the addComponent import ban */
 function u4Rules({ restrictAddComponent }) {
   return {
     'no-restricted-globals': ['error', ...NETWORK_GLOBALS, ...STORAGE_GLOBALS],
@@ -143,11 +145,11 @@ export default tseslint.config(
       ...react.configs['jsx-runtime'].rules,
       'react-hooks/rules-of-hooks': 'error',
       'react-hooks/exhaustive-deps': 'error',
-      // 外部のコードや文字列をコードとして動かさない（NFR3.2）
+      // Never run external code or strings as code (NFR3.2)
       'no-eval': 'error',
       'no-implied-eval': 'error',
       'no-new-func': 'error',
-      // 文字列を HTML として扱わない（NFR3.3）
+      // Never treat strings as HTML (NFR3.3)
       'react/no-danger': 'error',
       'no-restricted-properties': ['error', ...BASE_RESTRICTED_PROPERTIES],
     },
@@ -169,7 +171,7 @@ export default tseslint.config(
       ...STORAGE_GLOBALS,
     ]),
   },
-  // U3 のファイル（変更セットの中身一覧）。U1・U2 の一覧を広げて書き、禁止を消さない（U3 cicd-pipeline.md 段階 2）
+  // U3 files (change set contents viewer). Spread the U1/U2 lists so no ban is lost (U3 cicd-pipeline.md stage 2)
   {
     files: ['src/changeset-viewer/**/*.{ts,tsx}'],
     rules: {
@@ -184,7 +186,7 @@ export default tseslint.config(
         'error',
         {
           selector: 'MemberExpression[property.name="onMessageExternal"]',
-          message: '外部からのメッセージは受け取りません（U3 NFR3.3）。',
+          message: 'Messages from outside the extension are not accepted (U3 NFR3.3).',
         },
       ],
     },
@@ -195,8 +197,8 @@ export default tseslint.config(
       globals: { process: 'readonly', console: 'readonly' },
     },
   },
-  // U4（変更セットへの追加支援）。U1 の src/**・entrypoints/** のブロックより後ろに置き、
-  // U1・U2 の禁止の定数を合わせて広げて書く（U4 cicd-pipeline.md 段階 2「上書きを防ぐ書き方」）
+  // U4 (change set add assistant). Placed after U1's src/** and entrypoints/** block,
+  // spreading the U1/U2 ban constants together (U4 cicd-pipeline.md stage 2, "avoid overriding")
   {
     files: U4_FILES,
     rules: u4Rules({ restrictAddComponent: true }),

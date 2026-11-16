@@ -1,6 +1,6 @@
 /**
- * chrome.storage.local だけを使う保存の窓口（BR1.1、NFR1.2、security-design.md §1）。
- * 同期の保存領域（chrome.storage.sync）は使わない。失敗は Result の storageFailed で返す。
+ * Storage gateway that uses only chrome.storage.local (BR1.1, NFR1.2, security-design.md §1).
+ * Never uses synced storage (chrome.storage.sync). Failures are returned as Result storageFailed.
  */
 import { fail, ok, type Result } from '../shared/result';
 
@@ -8,7 +8,7 @@ function describeError(error: unknown): string | null {
   return error instanceof Error ? error.message : null;
 }
 
-/** キーの値を読む。値がないときは undefined を返す */
+/** Reads the value of a key. Returns undefined when there is none */
 export function readLocal(key: string): Promise<Result<unknown>> {
   return new Promise((resolve) => {
     try {
@@ -28,7 +28,7 @@ export function readLocal(key: string): Promise<Result<unknown>> {
   });
 }
 
-/** キーに値を書く */
+/** Writes a value to a key */
 export function writeLocal(key: string, value: unknown): Promise<Result<void>> {
   return new Promise((resolve) => {
     try {

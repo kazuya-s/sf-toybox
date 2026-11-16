@@ -7,7 +7,7 @@ export type ToolToggleListProps = {
   onToggle: (toolId: ToolId, enabled: boolean) => void;
 };
 
-/** 組み込まれたツールを順に並べる */
+/** Lists the bundled tools in order */
 export function ToolToggleList({ values, onToggle }: ToolToggleListProps) {
   return (
     <ul className="tool-toggle-list" data-testid="tool-toggle-list">

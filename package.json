@@ -1,7 +1,7 @@
 {
   "name": "sf-toybox",
   "version": "0.1.0",
-  "description": "Salesforce の設定画面を少し便利にする Chrome 拡張機能",
+  "description": "A Chrome extension of small tools that make Salesforce setup pages a little handier",
   "private": true,
   "type": "module",
   "bugs": {

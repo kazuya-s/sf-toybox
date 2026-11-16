@@ -1,5 +1,7 @@
 # 手での確認の手順 — U1 土台と件数の切り替え
 
+English: [manual-check.en.md](manual-check.en.md)
+
 自動テスト（`npm run test -- --coverage`）とビルドの確認（`npm run check:manifest`）が通ったあとに、開発者組織か Sandbox で、ビルドした拡張機能を手で動かして確かめます（team.md「Walking Skeleton」「Testing Posture」）。公開の流れの 2 番目の手順です（cicd-pipeline.md「公開の流れ」）。
 
 確かめた結果は、日付・組織の種類（開発者組織／Sandbox）・Chrome の版と一緒に記録します。

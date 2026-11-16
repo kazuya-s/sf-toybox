@@ -1,8 +1,8 @@
 /**
- * 後から読み込む件数バーの部品の入口（performance-design.md §1）。
- * React と SLDS を含むため、入口（salesforce.content.ts）とは別のファイルにビルドし、
- * ツールが ON で一覧の画面のときだけ import(chrome.runtime.getURL('/page-size-bar.js')) で読み込む。
- * wxt.config.ts で ES モジュールとして出力し、既定の書き出し（default）で mountPageSizeBar を外に出す。
+ * Entry of the lazily loaded page-size bar (performance-design.md §1).
+ * It contains React and SLDS, so it is built as a file separate from the entry (salesforce.content.ts)
+ * and loaded with import(chrome.runtime.getURL('/page-size-bar.js')) only when the tool is ON on a list page.
+ * wxt.config.ts emits it as an ES module; the default export exposes mountPageSizeBar.
  */
 import { defineUnlistedScript } from 'wxt/utils/define-unlisted-script';
 import { mountPageSizeBar } from '../src/page-size/mount';

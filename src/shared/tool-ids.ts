@@ -1,6 +1,6 @@
 /**
- * ツールの識別子と、拡張機能に組み込まれたツールの一覧（contract-summary.md C1）。
- * ツールの一覧は保存しない定義で、保存値のないツールは defaultEnabled（ON）を使う。
+ * Tool IDs and the list of tools bundled in the extension (contract-summary.md C1).
+ * The tool list is a definition, not stored data; tools with no stored value use defaultEnabled (ON).
  */
 import type { MessageKey } from '../i18n/message-keys';
 
@@ -8,21 +8,21 @@ export const TOOL_IDS = ['page-size-switcher', 'changeset-viewer', 'changeset-ad
 
 export type ToolId = (typeof TOOL_IDS)[number];
 
-/** エラーの記録で使う識別子。各ツールに、共通の部分を表す core を足したもの */
+/** IDs used in the error log: each tool, plus core for shared parts */
 export type LogToolId = ToolId | 'core';
 
 export type ToolDefinition = {
   toolId: ToolId;
-  /** 名前の文言キー（設計のキー） */
+  /** Message key of the name (design key) */
   nameKey: MessageKey;
-  /** 説明の文言キー（設計のキー） */
+  /** Message key of the description (design key) */
   descriptionKey: MessageKey;
   defaultEnabled: true;
 };
 
 /**
- * 設定画面に表示するツール。U1 では件数の切り替えだけ。
- * U3・U4 は、それぞれの作業単位で自分のツールをここに足す（frontend-components.md）。
+ * Tools shown on the options page. U1 had only the page-size switcher.
+ * U3 and U4 add their own tools here in their units (frontend-components.md).
  */
 export const TOOL_DEFINITIONS: readonly ToolDefinition[] = [
   {
@@ -31,7 +31,7 @@ export const TOOL_DEFINITIONS: readonly ToolDefinition[] = [
     descriptionKey: 'tool.pageSize.description',
     defaultEnabled: true,
   },
-  // U3 が changeset-viewer と changeset-add-assist の 2 つを足す（U4 はこのファイルを変えない）
+  // U3 adds both changeset-viewer and changeset-add-assist (U4 does not change this file)
   {
     toolId: 'changeset-viewer',
     nameKey: 'tool.changesetViewer.name',

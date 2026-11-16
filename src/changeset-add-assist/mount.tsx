@@ -1,7 +1,7 @@
 /**
- * 「追加」画面への追加支援の組み込み（U4 functional-spec.md F1、BR1.3、BR1.5）。
- * U1 の mountWithSlds（C2）で Shadow DOM を作り、候補の表のすぐ上に 1 つのフレームに 1 つだけ置く。
- * 種類を読めないときは、state.ts が候補の場所に案内を出し、追加を押せなくし、記録する（BR1.3）。
+ * Mounts the add assistant on the "Add" page (U4 functional-spec.md F1, BR1.3, BR1.5).
+ * Uses U1's mountWithSlds (C2) to create a Shadow DOM and places exactly one widget per frame, right above the candidate table.
+ * When the type cannot be read, state.ts shows a notice in the candidate area, disables Add and logs it (BR1.3).
  */
 import { createRoot } from 'react-dom/client';
 import { findCandidateTable, readSelectedComponentType } from '../changeset/index';
@@ -13,10 +13,10 @@ import { ADD_ASSIST_TOOL_ID, createAddAssistStore } from './state';
 import { AddAssistBoundary } from './ui/AddAssistBoundary';
 import { AddAssistCard } from './ui/AddAssistCard';
 
-/** 追加支援の入れ物に付ける目印。1 つのフレームに 1 つだけ置くために使う */
+/** Marker on the add-assist host element. Used to keep exactly one per frame */
 export const ADD_ASSIST_HOST_ATTRIBUTE = 'data-sftoybox-add-assist';
 
-/** 共通の SLDS のあとに、追加支援の CSS を Shadow DOM の中に足す */
+/** Appends the add-assist CSS inside the Shadow DOM after the shared SLDS */
 function addOwnStyle(host: Element, root: Element): void {
   const style = host.ownerDocument.createElement('style');
   style.textContent = toShadowCss(addAssistCss);
@@ -34,8 +34,8 @@ function placeHost(doc: Document): Element {
 }
 
 /**
- * 候補の表のすぐ上に追加支援を置き、名前・追加前の確認・候補の読み込みを始める。
- * すでに置いてあれば足さずに、その入れ物を返す。「追加」画面でなければ何もしない。
+ * Places the add assistant right above the candidate table and starts loading the name, the pre-add check and the candidates.
+ * If it is already mounted, returns the existing host without adding another. Does nothing outside the "Add" page.
  */
 export function mountChangesetAddAssist(
   pageInfo: PageInfo,

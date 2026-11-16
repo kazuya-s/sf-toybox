@@ -1,8 +1,8 @@
 /**
- * 追加支援のエラー境界（U4 security-design.md §6、NFR5.1）。
- * 表示中にエラーが起きても Salesforce の画面は壊さず、追加支援を外して記録する。
- * 追加中だったときは state.ts の「中止」の印を立て、runAdd は今の 1 件のあとで止まる。
- * そのときは「追加を途中で止めました」を出す。離れるときの確認は runAdd が外すまで残る。
+ * Error boundary for the add assistant (U4 security-design.md §6, NFR5.1).
+ * A render error never breaks the Salesforce page; the widget is removed and the error logged.
+ * If adding was in progress, it sets the "abort" flag in state.ts and runAdd stops after the current item.
+ * It then shows "Stopped adding midway". The leave-page confirmation stays until runAdd removes it.
  */
 import { Component, type ReactNode } from 'react';
 import { recordError } from '../../errors/error-log';

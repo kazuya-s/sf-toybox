@@ -15,8 +15,8 @@ function rowsPerPageOf(url: string | undefined): string | null {
   return url ? new URL(url).searchParams.get('rowsperpage') : null;
 }
 
-describe('件数バー（PageSizeBar）', () => {
-  it('4 つのボタンと入力欄と「表示」が出る（BR3.1、AC2.1.1）', () => {
+describe('Page-size bar (PageSizeBar)', () => {
+  it('shows four buttons, an input and "Show" (BR3.1, AC2.1.1)', () => {
     renderBar();
 
     for (const size of [100, 500, 1000, 2000]) {
@@ -27,7 +27,7 @@ describe('件数バー（PageSizeBar）', () => {
     expect(screen.getByTestId('page-size-bar')).toHaveTextContent('表示件数');
   });
 
-  it('今の件数のボタンだけが強調される（BR3.4、AC2.1.6）', () => {
+  it('highlights only the button for the current size (BR3.4, AC2.1.6)', () => {
     renderBar(urls.listWithRowsPerPage);
 
     expect(screen.getByTestId('page-size-bar-preset-500')).toHaveAttribute('aria-pressed', 'true');
@@ -40,7 +40,7 @@ describe('件数バー（PageSizeBar）', () => {
     }
   });
 
-  it('ボタンを押すと rowsperpage を置き換えた URL で開き直す（AC2.1.2、AC2.1.5）', async () => {
+  it('a button reopens the page with rowsperpage replaced (AC2.1.2, AC2.1.5)', async () => {
     const { navigate, user } = renderBar(urls.listWithRowsPerPage);
 
     await user.click(screen.getByTestId('page-size-bar-preset-1000'));
@@ -52,7 +52,7 @@ describe('件数バー（PageSizeBar）', () => {
     expect(next.searchParams.get('retURL')).toBe('/setup');
   });
 
-  it('正しい入力で Enter を押すと開き直す（AC2.1.3）', async () => {
+  it('Enter with valid input reopens the page (AC2.1.3)', async () => {
     const { navigate, user } = renderBar(urls.listWithoutRowsPerPage);
 
     await user.type(screen.getByTestId('page-size-bar-input'), ' 3000 {Enter}');
@@ -61,7 +61,7 @@ describe('件数バー（PageSizeBar）', () => {
   });
 
   it.each(['0', '-5', '1.5', 'abc', '10"><script>'])(
-    '正しくない入力（%s）では開き直さず、案内を出し、入力した文字を残す（AC2.1.4）',
+    'invalid input (%s) does not reopen, shows a hint and keeps the typed text (AC2.1.4)',
     async (input) => {
       const { navigate, user } = renderBar();
       const field = screen.getByTestId('page-size-bar-input');
@@ -77,7 +77,7 @@ describe('件数バー（PageSizeBar）', () => {
     },
   );
 
-  it('空のまま「表示」を押すと案内を出し、正しい値にして「表示」で確定できる', async () => {
+  it('pressing "Show" while empty shows the hint, and "Show" confirms once the value is valid', async () => {
     const { navigate, user } = renderBar();
 
     await user.click(screen.getByTestId('page-size-bar-apply'));
@@ -91,7 +91,7 @@ describe('件数バー（PageSizeBar）', () => {
     expect(rowsPerPageOf(navigate.mock.calls[0]?.[0])).toBe('250');
   });
 
-  it('HTML 風の文字列は HTML として表示されない（NFR3.3）', async () => {
+  it('HTML-like strings are not rendered as HTML (NFR3.3)', async () => {
     const { user } = renderBar();
     const field = screen.getByTestId('page-size-bar-input');
 
@@ -101,7 +101,7 @@ describe('件数バー（PageSizeBar）', () => {
     expect(field).toHaveValue('<img src=x onerror=alert(1)>');
   });
 
-  it('英語の環境では英語の文言で出す（BR4.1）', () => {
+  it('uses English messages in an English environment (BR4.1)', () => {
     setUiLanguage('en-US');
     renderBar();
 

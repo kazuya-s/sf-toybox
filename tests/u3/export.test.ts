@@ -14,7 +14,7 @@ import { installOutputSpies, restoreOutputSpies, type OutputSpies } from './help
 const HEADERS: ExportHeaders = ['種類', 'API 名', '親オブジェクト'];
 const DATE = new Date(2026, 10, 3, 9, 30);
 
-describe('コピーと CSV の出力（export）', () => {
+describe('Copy and CSV output (export)', () => {
   let spies: OutputSpies;
 
   beforeEach(() => {
@@ -25,7 +25,7 @@ describe('コピーと CSV の出力（export）', () => {
     restoreOutputSpies();
   });
 
-  it("数式にしない: =、+、-、@、タブ、CR で始まる値に「'」が付く（見出しも含む。BR3.5）", () => {
+  it("formula neutralizing: values starting with =, +, -, @, tab or CR get a leading ' (headers too; BR3.5)", () => {
     expect(formatCell('=SUM(A1)')).toBe("'=SUM(A1)");
     expect(formatCell('+1')).toBe("'+1");
     expect(formatCell('-1')).toBe("'-1");
@@ -37,7 +37,7 @@ describe('コピーと CSV の出力（export）', () => {
     expect(firstLine).toBe("'=Type\tAPI\tParent");
   });
 
-  it('カンマ、引用符、改行、タブを含む値は引用符で囲み、中の引用符を 2 つ重ねる（BR3.4）', () => {
+  it('values with commas, quotes, line breaks or tabs are quoted, with inner quotes doubled (BR3.4)', () => {
     expect(formatCell('Test,Comma')).toBe('"Test,Comma"');
     expect(formatCell('Test"Quoted"')).toBe('"Test""Quoted"""');
     expect(formatCell('Test\r\nLine')).toBe('"Test\r\nLine"');
@@ -46,7 +46,7 @@ describe('コピーと CSV の出力（export）', () => {
     expect(formatCell('TestPlain')).toBe('TestPlain');
   });
 
-  it('親オブジェクトがない行は空欄（「-」は出さない。BR3.3）', () => {
+  it('rows without a parent object get an empty cell (never "-"; BR3.3)', () => {
     const rows = loadComponents('components-no-parent').components;
 
     const lines = toCsv(rows, HEADERS).replace('﻿', '').split('\r\n');
@@ -56,7 +56,7 @@ describe('コピーと CSV の出力（export）', () => {
     expect(lines.join('')).not.toContain('-');
   });
 
-  it('コピーはタブ区切り、CSV はカンマ区切り。どちらも見出しの行つきで CRLF（BR3.2、BR3.6）', () => {
+  it('copy is tab-separated and CSV comma-separated, both with a header row and CRLF (BR3.2, BR3.6)', () => {
     const rows = loadComponents('components-basic').components.slice(0, 1);
 
     expect(toTsv(rows, HEADERS)).toBe(
@@ -67,7 +67,7 @@ describe('コピーと CSV の出力（export）', () => {
     );
   });
 
-  it('CSV の先頭は BOM で、保存するファイルは UTF-8 の CSV（BR3.6）', async () => {
+  it('CSV starts with a BOM and the saved file is a UTF-8 CSV (BR3.6)', async () => {
     const text = toCsv(loadComponents('components-basic').components, HEADERS);
 
     const result = saveCsv(text, 'TestChangeSet_20261103.csv');
@@ -80,7 +80,7 @@ describe('コピーと CSV の出力（export）', () => {
     expect([...bytes.slice(0, 3)]).toEqual([0xef, 0xbb, 0xbf]);
   });
 
-  it('ファイル名: 使えない文字・100 文字・前後の空白と末尾の「.」・空・CON など（BR3.7）', () => {
+  it('file name: invalid characters, 100 characters, surrounding spaces and a trailing ".", empty, CON etc. (BR3.7)', () => {
     expect(csvFileName('TestChangeSet', DATE)).toBe('TestChangeSet_20261103.csv');
     expect(csvFileName('Test\\/:*?"<>|\u0001Set', DATE)).toBe('Test__________Set_20261103.csv');
     expect(csvFileName('T'.repeat(150), DATE)).toBe(`${'T'.repeat(100)}_20261103.csv`);
@@ -92,7 +92,7 @@ describe('コピーと CSV の出力（export）', () => {
     expect(csvFileName('COM10', DATE)).toBe('COM10_20261103.csv');
   });
 
-  it('クリップボードに書けたら成功、書き込みに失敗すると失敗の Result（BR3.8）', async () => {
+  it('success when the clipboard write works; a failed write returns a failed Result (BR3.8)', async () => {
     await expect(copyRows('Test\r\n')).resolves.toEqual({ ok: true, value: undefined });
     expect(spies.writeText).toHaveBeenCalledWith('Test\r\n');
 
@@ -103,7 +103,7 @@ describe('コピーと CSV の出力（export）', () => {
     expect(result.ok ? null : result.error.detail).toBe('NotAllowedError');
   });
 
-  it('保存に失敗すると失敗の Result（BR3.8）', () => {
+  it('a failed save returns a failed Result (BR3.8)', () => {
     spies.createObjectURL.mockImplementationOnce(() => {
       throw new TypeError('blob failed');
     });

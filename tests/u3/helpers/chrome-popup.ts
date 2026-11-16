@@ -1,11 +1,11 @@
 /**
- * U3 のテスト用の chrome の模擬（unit-test-instructions.md「模擬と差し替えの決まり」）。
- * U1 の tests/u1/helpers/chrome-mock.ts の模擬に、次を足す。
- * - chrome.tabs.query（アクティブなタブ）と chrome.tabs.sendMessage
- *   （答える・遅れて答える・答えない・すぐに失敗する・ページ側の聞き手へ届ける を窓口ごとに切り替える）
- * - chrome.runtime.sendMessage（ページ側 → ツールバーの画面の進み具合。失敗の切り替え）
+ * chrome mock for U3 tests (unit-test-instructions.md "Mock and stub rules").
+ * Adds the following to the U1 mock in tests/u1/helpers/chrome-mock.ts:
+ * - chrome.tabs.query (the active tab) and chrome.tabs.sendMessage
+ *   (per channel: answer, answer late, never answer, fail immediately, or deliver to page-side listeners)
+ * - chrome.runtime.sendMessage (page -> popup progress; failures switchable)
  * - chrome.runtime.openOptionsPage
- * onMessage の聞き手の登録と外しは、U1 の模擬の一覧をそのまま使う。
+ * Registering and removing onMessage listeners reuses the U1 mock's list as is.
  */
 import { beforeEach } from 'vitest';
 import {
@@ -16,21 +16,21 @@ import {
 
 export { TEST_EXTENSION_ID };
 
-/** テストで使うアクティブなタブの ID */
+/** Active tab ID used in tests */
 export const ACTIVE_TAB_ID = 7;
 
-/** chrome.tabs.sendMessage のふるまい */
+/** Behavior of chrome.tabs.sendMessage */
 export type TabMessageBehavior =
-  /** ページ側の聞き手（chrome.runtime.onMessage）へ届け、その答えを返す */
+  /** Deliver to page-side listeners (chrome.runtime.onMessage) and return their answer */
   | { kind: 'deliver' }
-  /** 決めた答えを返す（delayMs だけ遅らせる） */
+  /** Return a fixed answer (delayed by delayMs) */
   | { kind: 'respond'; response: unknown; delayMs?: number }
-  /** 答えない（コールバックを呼ばない） */
+  /** Never answer (the callback is never called) */
   | { kind: 'silent' }
-  /** すぐに失敗する（chrome.runtime.lastError） */
+  /** Fail immediately (chrome.runtime.lastError) */
   | { kind: 'fail'; message?: string };
 
-/** chrome.runtime.sendMessage の失敗のしかた */
+/** How chrome.runtime.sendMessage fails */
 export type RuntimeSendFailure = 'none' | 'lastError' | 'throw';
 
 export type SentTabMessage = { tabId: number; message: unknown };
@@ -69,7 +69,7 @@ function channelOf(message: unknown): string {
   return typeof channel === 'string' ? channel : '';
 }
 
-/** Chrome と同じく、コールバックの中だけ lastError を見せる */
+/** Like Chrome, exposes lastError only inside the callback */
 function withLastError(message: string, callback: () => void): void {
   chromeMock.runtime.lastError = { message };
   try {
@@ -79,7 +79,7 @@ function withLastError(message: string, callback: () => void): void {
   }
 }
 
-/** ページ側の聞き手へ届ける。どの聞き手も答えなければ、Chrome と同じく lastError で知らせる */
+/** Delivers to page-side listeners. If none answers, reports it via lastError like Chrome */
 function deliverToPage(message: unknown, callback: (response: unknown) => void) {
   const sender = { id: TEST_EXTENSION_ID } as chrome.runtime.MessageSender;
   void dispatchRuntimeMessage(message, sender).then((response) => {
@@ -134,7 +134,7 @@ function sendRuntimeMessage(message: unknown, callback?: () => void): void {
     );
     return;
   }
-  // ページ側（アクティブなタブ）から送られたものとして、ツールバーの画面の聞き手へ届ける
+  // Delivered to the popup listeners as if sent from the page side (the active tab)
   const sender = {
     id: TEST_EXTENSION_ID,
     tab: makeTab(ACTIVE_TAB_ID),
@@ -155,7 +155,7 @@ type ExtendedChrome = typeof chromeMock & {
   };
 };
 
-/** U1 の模擬に tabs・runtime.sendMessage・openOptionsPage を足し、状態を初めに戻す */
+/** Adds tabs, runtime.sendMessage and openOptionsPage to the U1 mock and resets the state */
 export function installPopupChromeMock(): void {
   state = createState();
   const extended = chromeMock as ExtendedChrome;
@@ -172,7 +172,7 @@ export function popupState(): PopupMockState {
   return state;
 }
 
-/** 窓口ごとに chrome.tabs.sendMessage のふるまいを決める */
+/** Sets the chrome.tabs.sendMessage behavior per channel */
 export function setTabMessageBehavior(channel: string, behavior: TabMessageBehavior): void {
   state.behaviors.set(channel, behavior);
 }
@@ -181,12 +181,12 @@ export function setRuntimeSendFailure(failure: RuntimeSendFailure): void {
   state.runtimeSendFailure = failure;
 }
 
-/** tabs.query が返すタブ（空にするとタブがない状態） */
+/** Tabs returned by tabs.query (empty means there is no tab) */
 export function setActiveTabs(tabIds: number[]): void {
   state.activeTabs = tabIds.map(makeTab);
 }
 
-/** ツールバーの画面の聞き手へ、決めた送り元から進み具合などを届ける */
+/** Delivers progress and the like to the popup listeners from a chosen sender */
 export function emitToPopup(
   message: unknown,
   sender: { id?: string; tabId?: number } = {},

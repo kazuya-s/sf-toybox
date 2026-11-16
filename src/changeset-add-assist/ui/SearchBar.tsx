@@ -1,6 +1,6 @@
 /**
- * 検索欄: NameSearchInput・ParentSelect・MatchCount（frontend-components.md、BR2.1、BR2.2）。
- * 検索欄で Enter を押しても追加しない（誤操作を防ぐため。form を使わず、Enter の既定の動きも止める）。
+ * Search bar: NameSearchInput, ParentSelect, MatchCount (frontend-components.md, BR2.1, BR2.2).
+ * Pressing Enter in the search box never adds (to prevent mistakes: no form, and Enter's default is prevented).
  */
 import { useId, type KeyboardEvent } from 'react';
 import { t } from '../../i18n/presentation';

@@ -7,7 +7,7 @@ import { html, installFetchMock, redirect } from '../helpers/fetch-mock';
 import { readFixture, useSalesforceLocation } from '../helpers/location';
 import { DETAIL_PAGE_1, DETAIL_PAGE_2, DETAIL_PAGE_3 } from '../helpers/paths';
 
-/** 1 ページ分の読み取り: 行の 2 列目（名前）を返す。表がなければ失敗 */
+/** Reads one page: returns column 2 (name) of each row; fails if there is no table */
 function readNames(page: ParsedPage): Result<PageRead<string[]>> {
   const table = page.table(CHANGE_SET_MARKERS.detail.componentTable);
   if (!table) return fail('unexpectedResponse', 'changeset.missingTable');
@@ -23,16 +23,16 @@ function routeThreePages() {
 }
 
 function valueOf<T>(result: Result<T>): T {
-  if (!result.ok) throw new Error(`成功を期待しました: ${result.error.kind}`);
+  if (!result.ok) throw new Error(`Expected success: ${result.error.kind}`);
   return result.value;
 }
 
-describe('ページを順に読む処理（paging、BR2.2、BR2.3）', () => {
+describe('Reading pages in order (paging, BR2.2, BR2.3)', () => {
   beforeEach(() => {
     useSalesforceLocation();
   });
 
-  it('1 ページだけのときは complete: true で、進み具合は 1/1', async () => {
+  it('a single page is complete: true with progress 1/1', async () => {
     installFetchMock().route(DETAIL_PAGE_1, html(readFixture('detail-single.html')));
     const progress: LoadProgress[] = [];
 
@@ -52,7 +52,7 @@ describe('ページを順に読む処理（paging、BR2.2、BR2.3）', () => {
     expect(progress).toEqual([{ loadedPages: 1, totalPages: 1 }]);
   });
 
-  it('3 ページを順に読み、進み具合が 1/3、2/3、3/3 で呼ばれる', async () => {
+  it('reads three pages in order and reports progress 1/3, 2/3, 3/3', async () => {
     routeThreePages();
     const progress: LoadProgress[] = [];
 
@@ -73,7 +73,7 @@ describe('ページを順に読む処理（paging、BR2.2、BR2.3）', () => {
     ]);
   });
 
-  it('順に読む: 複数ページの読み込みで、同時に 2 つの fetch が走らない（NFR7.2）', async () => {
+  it('sequential reads: no two fetches run at once across pages (NFR7.2)', async () => {
     const mock = routeThreePages();
 
     await readAllPages({ firstPath: DETAIL_PAGE_1, parsePage: readNames });
@@ -86,7 +86,7 @@ describe('ページを順に読む処理（paging、BR2.2、BR2.3）', () => {
     ]);
   });
 
-  it('1 ページ目の失敗は ok: false で、その種類を返す', async () => {
+  it('a page 1 failure is ok: false with that kind', async () => {
     installFetchMock().route(DETAIL_PAGE_1, redirect());
 
     const result = await readAllPages({ firstPath: DETAIL_PAGE_1, parsePage: readNames });
@@ -97,7 +97,7 @@ describe('ページを順に読む処理（paging、BR2.2、BR2.3）', () => {
     });
   });
 
-  it('2 ページ目の失敗（ログイン切れ・想定外の形）は complete: false で読めた分を返し、それより後を読まない', async () => {
+  it('a page 2 failure (session expiry, unexpected shape) returns what was read with complete: false and reads no further', async () => {
     const mock = installFetchMock()
       .route(DETAIL_PAGE_1, html(readFixture('detail-page1.html')))
       .route(DETAIL_PAGE_2, [redirect(), html('<p>no table</p>')]);
@@ -119,7 +119,7 @@ describe('ページを順に読む処理（paging、BR2.2、BR2.3）', () => {
     expect(mock.count(DETAIL_PAGE_3)).toBe(0);
   });
 
-  it('200 ページの打ち切り: 「次のページ」が続いても 200 ページで止まり complete: false（NFR7.3）', async () => {
+  it('200-page cap: stops at 200 pages even with "Next Page" still present, complete: false (NFR7.3)', async () => {
     const mock = installFetchMock().fallback((call) => {
       const match = /^\/endless\?p=(\d+)$/.exec(call.path);
       if (!match) return null;
@@ -135,11 +135,11 @@ describe('ページを順に読む処理（paging、BR2.2、BR2.3）', () => {
     expect(mock.calls).toHaveLength(MAX_PAGES);
     expect(result.pages).toHaveLength(MAX_PAGES);
     expect(result.complete).toBe(false);
-    // 全体の件数が分からないので 1
+    // The total is unknown, so 1
     expect(result.failedPages).toBe(1);
   });
 
-  it('onProgress が例外を投げても読み込みは続き、stopWhen で途中でやめられる', async () => {
+  it('loading continues when onProgress throws, and stopWhen can end it early', async () => {
     const mock = routeThreePages();
     const onProgress = vi.fn(() => {
       throw new Error('progress failed');

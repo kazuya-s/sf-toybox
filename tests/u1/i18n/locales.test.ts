@@ -12,7 +12,7 @@ function listSourceFiles(dir: string): string[] {
   });
 }
 
-/** ソースの中で文言キーとして書かれている文字列を集める */
+/** Collects strings in the source that are written as message keys */
 function keysUsedInSource(): string[] {
   const pattern =
     /(?:\bt\(\s*|messageKey:\s*|nameKey:\s*|descriptionKey:\s*)'([a-zA-Z]+(?:\.[a-zA-Z]+)+)'/g;
@@ -26,15 +26,15 @@ function keysUsedInSource(): string[] {
   return [...keys];
 }
 
-describe('_locales の文言（ja と en）', () => {
+describe('_locales messages (ja and en)', () => {
   const ja = readLocaleMessages('ja');
   const en = readLocaleMessages('en');
 
-  it('ja と en のキーが一致している', () => {
+  it('ja and en have the same keys', () => {
     expect(Object.keys(ja).sort()).toEqual(Object.keys(en).sort());
   });
 
-  it('文言キーの一覧と、ソースで使っているキーがすべて両方にある', () => {
+  it('every key in the list and every key used in the source exists in both', () => {
     const used = keysUsedInSource();
     expect(used.length).toBeGreaterThan(5);
 
@@ -45,7 +45,7 @@ describe('_locales の文言（ja と en）', () => {
     }
   });
 
-  it('空の文言がなく、説明文で速さの効果を言い切らない（BR1.8）', () => {
+  it('no message is empty, and descriptions never promise speed gains (BR1.8)', () => {
     for (const [name, entry] of [...Object.entries(ja), ...Object.entries(en)]) {
       expect(entry.message.trim(), name).not.toBe('');
     }

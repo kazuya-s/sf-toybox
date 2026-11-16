@@ -1,5 +1,5 @@
 {
-  "description": "手で書いた架空の候補（親オブジェクトを持たない種類）。名前は Test で始め、ID は 0 の並びだけにする",
+  "description": "Hand-written fake candidates (a type without parent objects). Names start with Test and IDs are all zeros",
   "orgHost": "example.my.salesforce.com",
   "componentType": "ApexClass",
   "candidates": [

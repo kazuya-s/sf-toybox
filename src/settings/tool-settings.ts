@@ -1,6 +1,6 @@
 /**
- * ツールの ON/OFF（contract-summary.md C1 の ToolSettingsApi）。
- * 保存先は chrome.storage.local だけ（BR1.1）。読み込めないときはすべて ON（BR1.3）。
+ * Tool ON/OFF (ToolSettingsApi of C1 in contract-summary.md).
+ * Stored only in chrome.storage.local (BR1.1). Everything is ON when it cannot be read (BR1.3).
  */
 import { recordError } from '../errors/error-log';
 import { ok, type Result } from '../shared/result';
@@ -23,7 +23,7 @@ function allEnabled(): ToolEnabledValue[] {
   return TOOL_DEFINITIONS.map(({ toolId }) => ({ toolId, enabled: true }));
 }
 
-/** 全ツールの ON/OFF。読み込めないときはすべて ON で loadFailed: true（BR1.2、BR1.3） */
+/** ON/OFF for all tools. When unreadable, all ON with loadFailed: true (BR1.2, BR1.3) */
 export async function getAll(): Promise<AllToolSettings> {
   const read = await readLocal(SETTINGS_STORAGE_KEY);
   if (!read.ok) {
@@ -52,7 +52,7 @@ export async function getAll(): Promise<AllToolSettings> {
   };
 }
 
-/** そのツールが ON か。読み込めないときや一覧にないツールも true（FR1.6） */
+/** Whether the tool is ON. Also true when unreadable or for tools not in the list (FR1.6) */
 export async function isEnabled({ toolId }: { toolId: ToolId }): Promise<boolean> {
   try {
     const { settings } = await getAll();
@@ -66,7 +66,7 @@ export async function isEnabled({ toolId }: { toolId: ToolId }): Promise<boolean
   }
 }
 
-/** 保存を 1 件ずつ順に行うための列（BR1.5: 後の操作が勝つ） */
+/** Queue that serializes saves (BR1.5: the later operation wins) */
 let saveQueue: Promise<unknown> = Promise.resolve();
 
 async function saveOne(toolId: ToolId, enabled: boolean): Promise<Result<void>> {
@@ -75,7 +75,7 @@ async function saveOne(toolId: ToolId, enabled: boolean): Promise<Result<void>> 
     item.toolId === toolId ? { toolId, enabled } : item,
   );
   if (!values.some((item) => item.toolId === toolId)) values.push({ toolId, enabled });
-  // 保存のたびに、全ツールの値で保存データ全体を今の形で書く（読めなかった古いデータも置き換わる）
+  // Every save writes the whole data in the current shape from all tools' values (unreadable old data is replaced)
   const written = await writeLocal(SETTINGS_STORAGE_KEY, toStoredSettings(values));
   if (!written.ok) {
     await recordError({
@@ -88,7 +88,7 @@ async function saveOne(toolId: ToolId, enabled: boolean): Promise<Result<void>> 
   return ok(undefined);
 }
 
-/** ツールの ON/OFF を保存する。オプションページだけが使う */
+/** Saves a tool's ON/OFF. Used only by the options page */
 export function setEnabled({ toolId, enabled }: ToolEnabledValue): Promise<Result<void>> {
   const task = saveQueue.then(() => saveOne(toolId, enabled));
   saveQueue = task.catch(() => undefined);

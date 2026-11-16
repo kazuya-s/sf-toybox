@@ -30,12 +30,12 @@ node_modules/
 .wxt/
 coverage/
 
-# AI-DLC 本体・作業の記録・作業用コピー（公開リポジトリには入れない。手元でだけ使う）
+# AI-DLC framework, work records and worktrees (kept local only; never in the public repo)
 .aidlc/
 aidlc/
 .claude/
 
-# ログイン情報・鍵・秘密の値（どこにあっても入れない）
+# Credentials, keys and secrets (never commit, wherever they are)
 .env
 .env.*
 !.env.example
@@ -52,10 +52,10 @@ credentials*.json
 secrets*.json
 *.secret
 
-# Chrome ウェブストアに出した zip や手元の控え
+# Zips submitted to the Chrome Web Store and local copies
 *.zip
 
-# エディタと OS が作るファイル
+# Files created by editors and the OS
 .DS_Store
 Thumbs.db
 .vscode/

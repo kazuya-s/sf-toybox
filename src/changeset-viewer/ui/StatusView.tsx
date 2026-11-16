@@ -1,5 +1,5 @@
 /**
- * 状態ごとの案内: disabled / wrong-page / loading / empty / error / session-expired（BR1.1〜BR1.4）。
+ * Notice per state: disabled / wrong-page / loading / empty / error / session-expired (BR1.1-BR1.4).
  */
 import type { LoadProgress } from '../../changeset';
 import { t } from '../../i18n/presentation';
@@ -10,7 +10,7 @@ export type StatusKind =
 export type StatusViewProps = {
   kind: StatusKind;
   progress?: LoadProgress | null;
-  /** error のとき、受け取るフレームがなかったら再読み込みの案内を添える（performance-design.md §3） */
+  /** On error, adds the reload hint when no frame received the request (performance-design.md §3) */
   showReloadHint?: boolean;
   onRetry?: () => void;
   onOpenSettings?: () => void;

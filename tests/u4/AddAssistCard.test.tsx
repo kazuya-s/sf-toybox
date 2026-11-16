@@ -1,6 +1,6 @@
 /**
- * 追加支援の画面（src/changeset-add-assist/ui/、frontend-components.md、BR2.1〜BR2.5、BR3.4〜BR3.6、
- * NFR3.1、NFR7.3、NFR7.4）。U2 の関数は差し替え、画面は Testing Library で操作する。
+ * The add-assist UI (src/changeset-add-assist/ui/, frontend-components.md, BR2.1-BR2.5, BR3.4-BR3.6,
+ * NFR3.1, NFR7.3, NFR7.4). U2 functions are stubbed; the UI is driven with Testing Library.
  */
 import { act, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -40,13 +40,13 @@ const candidateNames = () =>
     .getAllByRole('listitem')
     .map((item) => item.textContent);
 
-describe('追加支援の画面（AddAssistCard）', () => {
+describe('Add-assist UI (AddAssistCard)', () => {
   beforeEach(() => {
     u2.reset();
     vi.spyOn(console, 'error').mockImplementation(() => undefined);
   });
 
-  it('候補を名前の順にチェック欄つきで出し、「一致」「選択中（うち非表示）」を示す。検索で U2 を呼び直さない（BR2.1、BR2.3、NFR7.4）', async () => {
+  it('lists candidates in name order with checkboxes and shows "Matches" and "Selected (hidden)"; searching never calls U2 again (BR2.1, BR2.3, NFR7.4)', async () => {
     const user = userEvent.setup();
     await renderCard();
 
@@ -72,7 +72,7 @@ describe('追加支援の画面（AddAssistCard）', () => {
     expect(u2.listAddCandidates.calls).toHaveLength(1);
   });
 
-  it('何も選んでいないと追加ボタンを押せず、「追加するものを選んでください」が出る（BR2.5）', async () => {
+  it('with nothing selected the Add button is disabled and "Select items to add" shows (BR2.5)', async () => {
     const user = userEvent.setup();
     await renderCard();
 
@@ -86,7 +86,7 @@ describe('追加支援の画面（AddAssistCard）', () => {
     expect(screen.queryByTestId('addassist-select-hint')).toBeNull();
   });
 
-  it('一致が 0 件なら案内を出し、選択は残る（BR2.4）', async () => {
+  it('zero matches shows a notice and keeps the selection (BR2.4)', async () => {
     const user = userEvent.setup();
     await renderCard();
     await user.click(screen.getByTestId(`addassist-candidate-${KEY.code}`));
@@ -104,7 +104,7 @@ describe('追加支援の画面（AddAssistCard）', () => {
     expect(screen.getByTestId(`addassist-candidate-${KEY.code}`)).toBeChecked();
   });
 
-  it('文字として表示: HTML 風の名前・親オブジェクト・追加先の名前・理由が文字のまま出て、要素は作られない（NFR3.1）', async () => {
+  it('rendered as text: HTML-like names, parent objects, target name and reasons stay text and create no elements (NFR3.1)', async () => {
     (window as unknown as Record<string, unknown>).__sftoyboxInjected = false;
     u2.getChangeSet.next(
       ok({
@@ -136,7 +136,7 @@ describe('追加支援の画面（AddAssistCard）', () => {
     expect((window as unknown as Record<string, unknown>).__sftoyboxInjected).toBe(false);
   });
 
-  it('進み具合: 候補の読み込み中は「候補を読み込んでいます…」、追加中は「追加しています… (i / n)」を 1 件ごとに更新する（NFR7.3）', async () => {
+  it('progress: "Loading candidates…" while loading, and "Adding… (i / n)" updated per item while adding (NFR7.3)', async () => {
     const candidates = u2.listAddCandidates.nextDeferred();
     const user = userEvent.setup();
     const store = createAddAssistStore({
@@ -170,7 +170,7 @@ describe('追加支援の画面（AddAssistCard）', () => {
     expect(screen.getByTestId('addassist-result')).toBeInTheDocument();
   });
 
-  it('追加中は検索・親オブジェクト・選択・ボタンを押せず、離れるときの文言を出す（BR3.2、BR3.6）', async () => {
+  it('while adding, search, parent, selection and buttons are disabled and the leave notice shows (BR3.2, BR3.6)', async () => {
     const user = userEvent.setup();
     await renderCard();
     await user.click(screen.getByTestId(`addassist-candidate-${KEY.amount}`));
@@ -192,7 +192,7 @@ describe('追加支援の画面（AddAssistCard）', () => {
     expect(screen.queryByTestId('addassist-leave-warning')).toBeNull();
   });
 
-  it('結果の欄に 3 つの一覧を出し、見出しにフォーカスを移す。「閉じる」と Escape を続けても読み込み直しは 1 回（BR3.4、BR3.5、NFR3.8）', async () => {
+  it('the result panel shows three lists and focuses its heading; "Close" then Escape reloads only once (BR3.4, BR3.5, NFR3.8)', async () => {
     const reload = watchReload();
     const user = userEvent.setup();
     await renderCard();
@@ -223,7 +223,7 @@ describe('追加支援の画面（AddAssistCard）', () => {
     expect(reload).toHaveBeenCalledTimes(1);
   });
 
-  it('検索欄で Enter を押しても追加せず、Enter での追加は追加ボタンにフォーカスがあるときだけ', async () => {
+  it('Enter in the search box never adds; Enter adds only when the Add button has focus', async () => {
     const user = userEvent.setup();
     await renderCard();
     await user.click(screen.getByTestId(`addassist-candidate-${KEY.amount}`));
@@ -237,7 +237,7 @@ describe('追加支援の画面（AddAssistCard）', () => {
     expect(u2.addComponent.calls.map((call) => call.componentKey)).toEqual([KEY.amount]);
   });
 
-  it('止める理由と読み込みの失敗: 赤字の理由と「もう一度試す」を出し、成功すると消える。ログイン切れではやり直しを出さない（BR1.2、BR1.4）', async () => {
+  it('blocking reasons and load failures: shows the red reason and "Try again", clears on success, and offers no retry on session expiry (BR1.2, BR1.4)', async () => {
     u2.checkAddPreconditions.nextFail('timeout');
     u2.getChangeSet.nextFail('timeout');
     u2.listAddCandidates.next(
@@ -261,7 +261,7 @@ describe('追加支援の画面（AddAssistCard）', () => {
     expect(screen.queryByTestId('addassist-blocked')).toBeNull();
     expect(screen.queryByTestId('addassist-load-error')).toBeNull();
 
-    // 候補の読み込みのログイン切れは、上に理由を出し、候補の場所にはやり直しを出さない
+    // A session expiry while loading candidates shows the reason above and no retry in the candidate area
     u2.reset();
     u2.listAddCandidates.nextFail('sessionExpired');
     await renderCard();

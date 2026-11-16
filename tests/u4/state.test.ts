@@ -1,6 +1,6 @@
 /**
- * 追加の状態と安全策（src/changeset-add-assist/state.ts、security-design.md §4・§5、NFR3.3〜NFR3.8、NFR7.5）。
- * U2 の関数は tests/u4/helpers/u2-mock.ts で差し替える。
+ * Add state and safeguards (src/changeset-add-assist/state.ts, security-design.md §4, §5, NFR3.3-NFR3.8, NFR7.5).
+ * U2 functions are stubbed with tests/u4/helpers/u2-mock.ts.
  */
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { canAdd, createAddAssistStore } from '../../src/changeset-add-assist/state';
@@ -27,7 +27,7 @@ vi.mock('../../src/salesforce/index', async () =>
   (await import('./helpers/u2-mock')).mockSalesforceModule(),
 );
 
-/** basic の候補の componentKey（名前の順: Amount 001, Code 002, Note 005, Priority 004, Status 003） */
+/** componentKeys of the basic candidates (name order: Amount 001, Code 002, Note 005, Priority 004, Status 003) */
 const KEY = {
   amount: '00N000000000001',
   code: '00N000000000002',
@@ -39,13 +39,13 @@ const KEY = {
 const addedKeys = () => u2.addComponent.calls.map((call) => call.componentKey);
 const names = (list: { name: string }[] | undefined) => (list ?? []).map((item) => item.name);
 
-describe('追加の状態（state）', () => {
+describe('Add state (state)', () => {
   beforeEach(() => {
     u2.reset();
     vi.spyOn(console, 'error').mockImplementation(() => undefined);
   });
 
-  it('同時に始める: 3 つの呼び出しが、どれの結果も待たずに始まり、届いた順に反映される（NFR7.5）', async () => {
+  it('start together: the three calls start without waiting for each other and apply in arrival order (NFR7.5)', async () => {
     const name = u2.getChangeSet.nextDeferred();
     const check = u2.checkAddPreconditions.nextDeferred();
     const candidates = u2.listAddCandidates.nextDeferred();
@@ -90,7 +90,7 @@ describe('追加の状態（state）', () => {
     expect(u2.callLog).toHaveLength(3);
   });
 
-  it('名前と確認がそろうまで押せない: getChangeSet と checkAddPreconditions の両方が成功するまで canAdd は false（NFR3.6）', async () => {
+  it('disabled until name and check are both in: canAdd stays false until getChangeSet and checkAddPreconditions both succeed (NFR3.6)', async () => {
     const name = u2.getChangeSet.nextDeferred();
     const check = u2.checkAddPreconditions.nextDeferred();
     const store = createAddAssistStore({
@@ -117,7 +117,7 @@ describe('追加の状態（state）', () => {
     expect(canAdd(store.getState())).toBe(false);
   });
 
-  it('止める理由: それぞれの失敗で canAdd が false になり、「もう一度試す」の成功でその理由だけが外れる（NFR3.6、BR1.2）', async () => {
+  it('blocking reasons: each failure makes canAdd false, and a successful "Try again" clears only that reason (NFR3.6, BR1.2)', async () => {
     const cases = [
       { setup: () => u2.checkAddPreconditions.nextFail('sessionExpired'), retry: null },
       { setup: () => u2.checkAddPreconditions.nextFail('changeSetLocked'), retry: null },
@@ -143,7 +143,7 @@ describe('追加の状態（state）', () => {
     });
     expect(u2.listAddCandidates.calls).toHaveLength(0);
 
-    // 名前の取得と候補の読み込みが失敗し、それぞれのやり直しでその理由だけが外れる
+    // Name loading and candidate loading fail, and each retry clears only its own reason
     u2.reset();
     u2.getChangeSet.nextFail('timeout');
     u2.listAddCandidates.nextFail('network');
@@ -161,7 +161,7 @@ describe('追加の状態（state）', () => {
     expect(canAdd(store.getState())).toBe(true);
   });
 
-  it('押したときだけ: 読み込みと選択では addComponent を呼ばず、runAdd で選んだものだけを名前の順に渡す（NFR3.3）', async () => {
+  it('only on click: loading and selecting never call addComponent; runAdd passes only the selected items in name order (NFR3.3)', async () => {
     const store = await storeWithSelection([KEY.status, KEY.amount, KEY.note]);
     store.toggleSelection(KEY.code);
     store.toggleSelection(KEY.code);
@@ -183,7 +183,7 @@ describe('追加の状態（state）', () => {
     ]);
   });
 
-  it('二重に追加しない: 続けて 2 回 runAdd を呼んでも 1 件につき 1 回。adding と result のあいだは canAdd が false（NFR3.4）', async () => {
+  it('no double adds: two back-to-back runAdd calls add each item once; canAdd is false during adding and result (NFR3.4)', async () => {
     const store = await storeWithSelection([KEY.amount, KEY.code]);
     const first = u2.addComponent.nextDeferred();
 
@@ -202,7 +202,7 @@ describe('追加の状態（state）', () => {
     expect(canAdd(store.getState())).toBe(false);
   });
 
-  it('失敗したら止める: 2 件目が失敗したら 3 件目以降を呼ばず、「試さなかったもの」に入れる（NFR3.5、BR3.3）', async () => {
+  it('stop on failure: if the second item fails, the third and later are not called and go to "Not tried" (NFR3.5, BR3.3)', async () => {
     const store = await storeWithSelection([KEY.priority, KEY.note, KEY.code, KEY.amount]);
     u2.addComponent.next(ok(undefined)).nextFail('timeout');
 
@@ -221,10 +221,10 @@ describe('追加の状態（state）', () => {
     expect(result?.aborted).toBe(false);
   });
 
-  it('離れるときの確認: 追加中だけ beforeunload が登録され、成功・失敗・中止のどれでも外れる。中止でもループが終わるまで残る（NFR3.7）', async () => {
+  it('leave confirmation: beforeunload is registered only while adding and removed on success, failure or abort; on abort it stays until the loop ends (NFR3.7)', async () => {
     const watch = watchBeforeUnload();
 
-    // 成功で終わる
+    // Ends in success
     const success = await storeWithSelection([KEY.amount]);
     const pending = u2.addComponent.nextDeferred();
     const running = success.runAdd();
@@ -236,13 +236,13 @@ describe('追加の状態（state）', () => {
     await running;
     expect(watch.isRegistered()).toBe(false);
 
-    // 失敗で終わる
+    // Ends in failure
     const failure = await storeWithSelection([KEY.amount]);
     u2.addComponent.nextFail('network');
     await failure.runAdd();
     expect(watch.isRegistered()).toBe(false);
 
-    // 中止の印で止まる
+    // Stops on the abort flag
     const aborted = await storeWithSelection([KEY.amount, KEY.code, KEY.note]);
     const current = u2.addComponent.nextDeferred();
     const abortedRun = aborted.runAdd();
@@ -261,7 +261,7 @@ describe('追加の状態（state）', () => {
     expect(afterEnd.defaultPrevented).toBe(false);
   });
 
-  it('閉じたら読み込み直す: closeResult を何度呼んでも location.reload は 1 回。結果が出るまでは呼ばない（NFR3.8）', async () => {
+  it('reload on close: closeResult reloads only once however often it is called, and never before the result (NFR3.8)', async () => {
     const reload = watchReload();
     const store = await storeWithSelection([KEY.amount]);
 

@@ -1,6 +1,6 @@
 /**
- * ツールバーの画面全体のエラー境界（security-design.md §6、logical-components.md）。
- * 表示中にエラーが起きたら「読み込めませんでした」を出し、固定の識別子だけで記録する。
+ * Error boundary for the whole toolbar popup (security-design.md §6, logical-components.md).
+ * On a render error it shows "Could not load" and logs with fixed IDs only.
  */
 import { Component, type ReactNode } from 'react';
 import { recordError } from '../../errors/error-log';

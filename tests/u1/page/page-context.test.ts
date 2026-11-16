@@ -9,7 +9,7 @@ import {
   urls,
 } from '../fixtures/pages';
 
-describe('画面の判定（page-context、C3 の detect）', () => {
+describe('Page detection (page-context, C3 detect)', () => {
   beforeEach(() => {
     setEmbeddedFrame(true);
     setBodyHtml(html.plain);
@@ -19,7 +19,7 @@ describe('画面の判定（page-context、C3 の detect）', () => {
     restoreFrame();
   });
 
-  it('URL に rowsperpage がある画面は pageSizeList（BR2.1）', () => {
+  it('a page with rowsperpage in the URL is pageSizeList (BR2.1)', () => {
     const result = detect({ url: urls.listWithRowsPerPage, document });
 
     expect(result).toEqual({
@@ -31,7 +31,7 @@ describe('画面の判定（page-context、C3 の detect）', () => {
   });
 
   it.each([html.listWithPagination, html.listWithRowsPerPageLink, html.paginationWithoutTable])(
-    'ページ送りか件数のリンクがある一覧は pageSizeList（BR2.3）',
+    'a list with a pager or a page-size link is pageSizeList (BR2.3)',
     (body) => {
       setBodyHtml(body);
 
@@ -39,25 +39,25 @@ describe('画面の判定（page-context、C3 の detect）', () => {
     },
   );
 
-  it('しるしがない画面は other', () => {
+  it('a page with no markers is other', () => {
     expect(detect({ url: urls.plain, document }).pageKind).toBe('other');
   });
 
-  it('最上位の古い形式の画面（Classic）は other（BR2.2）', () => {
+  it('a top-level classic-style page (Classic) is other (BR2.2)', () => {
     setEmbeddedFrame(false);
     setBodyHtml(html.listWithPagination);
 
     expect(detect({ url: urls.listWithRowsPerPage, document }).pageKind).toBe('other');
   });
 
-  it('/lightning/ の画面は、埋め込まれていても other', () => {
+  it('a /lightning/ page is other even when embedded', () => {
     setBodyHtml(html.listWithPagination);
 
     expect(detect({ url: urls.lightning, document }).pageKind).toBe('other');
   });
 
   it.each([urls.changeSetDetail15, urls.changeSetDetail18])(
-    '変更セットの詳細画面を判定し、ID を取り出す（BR2.4）: %s',
+    'detects the change set detail page and extracts the ID (BR2.4): %s',
     (url) => {
       const result = detect({ url, document });
 
@@ -66,14 +66,14 @@ describe('画面の判定（page-context、C3 の detect）', () => {
     },
   );
 
-  it('変更セットの追加画面を判定し、ID を取り出す（BR2.4）', () => {
+  it('detects the change set Add page and extracts the ID (BR2.4)', () => {
     const result = detect({ url: urls.changeSetAdd, document });
 
     expect(result.pageKind).toBe('outboundChangeSetAdd');
     expect(result.changeSetId).toBe('0A2xx0000000001AAA');
   });
 
-  it('ID の形が正しくないかないときは other で、orgHost はフレームのホスト名（BR2.4、BR2.5）', () => {
+  it('a malformed or missing ID is other, and orgHost is the frame host name (BR2.4, BR2.5)', () => {
     const badId = detect({ url: urls.changeSetBadId, document });
     const noId = detect({ url: urls.changeSetNoId, document });
     const otherHost = detect({

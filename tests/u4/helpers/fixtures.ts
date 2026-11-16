@@ -1,7 +1,7 @@
 /**
- * U4 のテストのデータ（tests/u4/fixtures/*.json）を、U2 の型（C5 の AddCandidate）として読む。
- * 型を付けて読むので、U2 の形が変わればここで型のエラーになる。
- * 毎回新しい配列を返し、テストのあいだで共有しない。
+ * Reads U4 test data (tests/u4/fixtures/*.json) as U2 types (C5 AddCandidate).
+ * It is read with types, so a change in U2's shape becomes a type error here.
+ * Returns a new array every time; nothing is shared between tests.
  */
 import type { AddCandidate } from '../../../src/changeset/index';
 import basic from '../fixtures/candidates-basic.json';
@@ -12,7 +12,7 @@ import noParent from '../fixtures/candidates-no-parent.json';
 export const TEST_ORG_HOST = basic.orgHost;
 export const TEST_CHANGE_SET_ID = basic.changeSetId;
 export const TEST_CHANGE_SET_NAME = basic.changeSetName;
-/** 「追加」画面の種類の選択欄の値（テストでの既定） */
+/** Value of the type select on the "Add" page (test default) */
 export const TEST_COMPONENT_TYPE = basic.componentType;
 
 const FIXTURES: Record<'basic' | 'html' | 'noParent', readonly AddCandidate[]> = {
@@ -27,7 +27,7 @@ export function candidatesFixture(name: CandidateFixtureName): AddCandidate[] {
   return FIXTURES[name].map((candidate) => ({ ...candidate }));
 }
 
-/** candidates-generated.json の作り方で、架空の候補を作る（NFR7.4 の 2000 件） */
+/** Builds fake candidates following candidates-generated.json (the 2000 items of NFR7.4) */
 export function generatedCandidates(count: number = generated.count): AddCandidate[] {
   return Array.from({ length: count }, (_, index) => {
     const serial = String(index + 1).padStart(generated.keyDigits, '0');

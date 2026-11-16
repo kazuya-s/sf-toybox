@@ -1,11 +1,11 @@
 /**
- * ポップアップからの画面の問い合わせ（contract-summary.md C3 の sftoybox/page-info）への応答
- * （BR2.6、security-design.md §6、NFR3.5）。
- * - ツールの ON/OFF を読む前に登録する
- * - 判定が other のフレームは答えない（登録もしない）
- * - 自分の拡張機能（sender.id === chrome.runtime.id）から、決めた channel のメッセージにだけ答える
- * - 優先度の低いフレームは答えを遅らせる（詳細 → 追加 → 一覧の順）
- * - onMessageExternal は登録しない
+ * Answers page queries from the popup (sftoybox/page-info of C3 in contract-summary.md)
+ * (BR2.6, security-design.md §6, NFR3.5).
+ * - Registered before the tool's ON/OFF is read
+ * - Frames detected as other never answer (and nothing is registered)
+ * - Answers only messages from this extension (sender.id === chrome.runtime.id) on the agreed channel
+ * - Lower-priority frames delay their answer (detail -> add -> list)
+ * - Never registers onMessageExternal
  */
 import { recordError } from '../errors/error-log';
 import { ok, type Result } from '../shared/result';
@@ -13,7 +13,7 @@ import type { PageInfo, PageKind } from './page-context';
 
 export const PAGE_INFO_CHANNEL = 'sftoybox/page-info';
 
-/** 答えるまでの待ち時間（ミリ秒）。小さいほど優先 */
+/** Delay before answering (ms). Smaller means higher priority */
 export const RESPONSE_DELAY_MS: Record<Exclude<PageKind, 'other'>, number> = {
   outboundChangeSetDetail: 0,
   outboundChangeSetAdd: 100,
@@ -43,8 +43,8 @@ function safeDetect(detectPage: () => PageInfo): PageInfo | null {
 }
 
 /**
- * このフレームを判定し、other でなければ問い合わせへの応答を登録する。
- * 判定の結果を返す。判定でエラーが出たときは記録して null を返す（例外は外に出さない）。
+ * Detects this frame and, unless it is other, registers the query responder.
+ * Returns the detection result. On a detection error, logs it and returns null (never throws).
  */
 export function registerPageInfoResponder(detectPage: () => PageInfo): PageInfo | null {
   const pageInfo = safeDetect(detectPage);
@@ -57,7 +57,7 @@ export function registerPageInfoResponder(detectPage: () => PageInfo): PageInfo 
     if (sender.id !== chrome.runtime.id) return false;
     if (!isPageInfoRequest(message)) return false;
     setTimeout(() => sendResponse(response), delay);
-    // 遅らせて答えるので、応答の窓口を開けたままにする
+    // Answering after a delay, so keep the response channel open
     return true;
   });
   return pageInfo;

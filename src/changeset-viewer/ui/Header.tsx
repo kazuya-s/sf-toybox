@@ -1,4 +1,4 @@
-/** 見出し: 「変更セット: <名前>」と「m 件」（BR2.5） */
+/** Header: "Change set: <name>" and "m items" (BR2.5) */
 import { t } from '../../i18n/presentation';
 
 export type HeaderProps = { name: string; total: number };

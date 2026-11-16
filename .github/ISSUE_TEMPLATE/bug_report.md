@@ -26,6 +26,8 @@ Please do not include your Salesforce org name, URLs, or record data.
 ## 使っていたツール / Tool
 
 - [ ] 一覧の表示件数の切り替え / List page size switcher
+- [ ] 変更セットの中身一覧 / Change set contents
+- [ ] 変更セットへの追加支援 / Change set add assistant
 
 ## 最近のエラー / Recent errors
 

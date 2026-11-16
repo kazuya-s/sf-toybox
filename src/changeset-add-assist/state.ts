@@ -1,15 +1,15 @@
 /**
- * 追加支援の状態と、追加の安全策（U4 security-design.md §4〜§6、performance-design.md §5）。
+ * Add-assist state and the safeguards around adding (U4 security-design.md §4-§6, performance-design.md §5).
  *
- * - 状態は 1 つの値（phase: idle / adding / result）と、追加を止める理由の集まり（blockReasons）で持つ
- * - 追加ボタンを押せるかどうかは canAdd だけで決める（NFR3.6）
- * - U2 の addComponent を呼ぶのは、このファイルの runAdd の中だけ（NFR3.3。ESLint で確かめる）
- * - 二重の追加は、React の状態とは別の、同期で読み書きする印（addRunning）で止める（NFR3.4）
- * - beforeunload の登録と解除は、画面ではなく runAdd が受け持つ（NFR3.7）
- * - U2 の呼び出しは Result で受け、try/catch でも包む。例外は unexpectedResponse として扱う（NFR5.1）
- * - 失敗はツールの識別子・種類・文言の識別子だけを記録し、名前は渡さない（NFR1.2、BR3.7）
+ * - State is a single value (phase: idle / adding / result) plus the set of reasons that block adding (blockReasons)
+ * - Whether the Add button is enabled is decided by canAdd alone (NFR3.6)
+ * - U2's addComponent is called only inside runAdd in this file (NFR3.3; enforced by ESLint)
+ * - Double adds are blocked by a synchronous flag (addRunning) kept outside React state (NFR3.4)
+ * - runAdd, not the UI, registers and removes the beforeunload handler (NFR3.7)
+ * - U2 calls are received as Result and also wrapped in try/catch; exceptions become unexpectedResponse (NFR5.1)
+ * - Failures are logged with only the tool ID, kind and message key; names are never passed (NFR1.2, BR3.7)
  *
- * 1 つのフレームに 1 つの追加支援を置くので、状態は置くたびに createAddAssistStore で作る。
+ * There is one add assistant per frame, so a new state is created with createAddAssistStore on every mount.
  */
 import {
   checkAddPreconditions,
@@ -26,17 +26,17 @@ import type { AddAssistState, AddResult, BlockReason, BlockSource, RetryTarget }
 
 export const ADD_ASSIST_TOOL_ID = 'changeset-add-assist';
 
-/** U2 の関数が例外を投げたときに、AppError の message に入れる固定の識別子 */
+/** Fixed ID put in AppError.message when a U2 function throws */
 export const UNEXPECTED_EXCEPTION_MESSAGE = 'changesetAddAssist.unexpectedException';
 
-/** やり直しの手段を出さない失敗（ログインし直すか、画面を読み込み直す。BR1.2） */
+/** Failures that offer no retry (the user must log in again or reload the page; BR1.2) */
 const NO_RETRY_KINDS: readonly AppErrorKind[] = [
   'sessionExpired',
   'changeSetLocked',
   'permissionDenied',
 ];
 
-/** 追加ボタンを押せるか（security-design.md §4 の式） */
+/** Whether the Add button can be pressed (the formula in security-design.md §4) */
 export function canAdd(state: AddAssistState): boolean {
   return (
     state.phase === 'idle' &&
@@ -48,18 +48,18 @@ export function canAdd(state: AddAssistState): boolean {
   );
 }
 
-/** U2 の呼び出しを包み、思わぬ例外も Result の失敗（unexpectedResponse）にする（NFR5.1） */
+/** Wraps a U2 call so even an unexpected exception becomes a Result failure (unexpectedResponse) (NFR5.1) */
 async function callSafely<T>(call: () => Promise<Result<T>>): Promise<Result<T>> {
   try {
     return await call();
   } catch (error) {
-    // 元の例外はコンソールにだけ出す。記録（errorLog）は呼び出し側が種類と文言の識別子で行う
+    // The original exception goes to the console only. The caller logs to errorLog with the kind and message key
     console.error(`[sf-toybox:${ADD_ASSIST_TOOL_ID}]`, UNEXPECTED_EXCEPTION_MESSAGE, error);
     return fail('unexpectedResponse', UNEXPECTED_EXCEPTION_MESSAGE);
   }
 }
 
-/** 失敗を「最近のエラー」に記録する。渡すのは識別子・種類・文言の識別子だけ（NFR1.2） */
+/** Logs a failure to "Recent errors" with only the ID, kind and message key (NFR1.2) */
 function report(kind: ErrorLogKind, messageKey: MessageKey): void {
   void recordError({ toolId: ADD_ASSIST_TOOL_ID, kind, messageKey });
 }
@@ -75,42 +75,42 @@ function withoutSources(
   return reasons.filter((reason) => !sources.includes(reason.source));
 }
 
-/** 同じところから来た理由を置き換える */
+/** Replaces the reason that came from the same source */
 function withReason(reasons: readonly BlockReason[], reason: BlockReason): BlockReason[] {
   return [...withoutSources(reasons, [reason.source]), reason];
 }
 
-/** 追加中にページを離れようとしたら、ブラウザの確認を出す（BR3.6） */
+/** Shows the browser's leave-page confirmation while adding (BR3.6) */
 function confirmBeforeUnload(event: BeforeUnloadEvent): void {
   event.preventDefault();
-  // Chrome は returnValue に値があるときに確認を出す（独自の文言は出せない）
+  // Chrome shows the confirmation when returnValue is set (custom text cannot be shown)
   event.returnValue = '';
 }
 
 export type AddAssistStoreOptions = {
   changeSetId: string;
-  /** 「追加」画面で選ばれている種類の値。読めなければ null（BR1.3） */
+  /** Value of the type selected on the "Add" page; null if it cannot be read (BR1.3) */
   componentType: string | null;
-  /** beforeunload と読み込み直しに使う window。テストで差し替える */
+  /** window used for beforeunload and reload. Replaced in tests */
   win?: Window;
 };
 
 export type AddAssistStore = {
   getState(): AddAssistState;
   subscribe(listener: () => void): () => void;
-  /** 名前・追加前の確認・候補の読み込みを、同時に始める（NFR7.5）。2 回目からは何もしない */
+  /** Starts loading the name, the pre-add check and the candidates at the same time (NFR7.5). No-op after the first call */
   start(): Promise<void>;
-  /** 名前と追加前の確認をやり直す。成功したら、その理由だけを外す */
+  /** Retries the name and the pre-add check. On success, clears only that reason */
   retryPreconditions(): Promise<void>;
-  /** 候補の読み込みをやり直す。成功したら、その理由だけを外す */
+  /** Retries loading the candidates. On success, clears only that reason */
   retryCandidates(): Promise<void>;
-  /** 候補の選択を付け外しする。追加中と結果のあいだは何もしない（BR3.2、BR3.4） */
+  /** Toggles a candidate's selection. No-op while adding and while the result is shown (BR3.2, BR3.4) */
   toggleSelection(componentKey: string): void;
-  /** 選んだものを名前の順に 1 件ずつ追加する（BR3.1〜BR3.3）。追加ボタンからだけ呼ぶ */
+  /** Adds the selected items one by one in name order (BR3.1-BR3.3). Called only from the Add button */
   runAdd(): Promise<void>;
-  /** 結果の欄を閉じ、最初の 1 回だけ画面を読み込み直す（BR3.5、NFR3.8） */
+  /** Closes the result panel and reloads the page, only the first time (BR3.5, NFR3.8) */
   closeResult(): void;
-  /** 描画エラーで画面が外れたときの「中止」の印を立てる（security-design.md §6） */
+  /** Sets the "abort" flag when a render error unmounts the UI (security-design.md §6) */
   abort(): void;
   isAbortRequested(): boolean;
 };
@@ -138,7 +138,7 @@ export function createAddAssistStore(options: AddAssistStoreOptions): AddAssistS
   let state = initialState();
   const listeners = new Set<() => void>();
   let started = false;
-  /** 追加の実行中の印。同期で読み書きし、同じ瞬間の 2 回目の呼び出しを止める（NFR3.4） */
+  /** In-progress flag for adding. Read and written synchronously to stop a second call in the same instant (NFR3.4) */
   let addRunning = false;
   let abortRequested = false;
   let closed = false;
@@ -204,7 +204,7 @@ export function createAddAssistStore(options: AddAssistStoreOptions): AddAssistS
       candidates: sorted,
       candidatesLoaded: true,
       candidatesStatus: complete ? 'loaded' : 'partial',
-      // 読み直して候補から消えたものは、選択からも外す
+      // Items that disappeared from the reloaded candidates are also removed from the selection
       selection: new Set([...current.selection].filter((key) => keys.has(key))),
       blockReasons: withoutSources(current.blockReasons, ['candidates']),
     }));
@@ -247,7 +247,7 @@ export function createAddAssistStore(options: AddAssistStoreOptions): AddAssistS
   async function start(): Promise<void> {
     if (started) return;
     started = true;
-    // どれも待たずに始め、結果は届いた順に反映する（NFR7.5）
+    // Start all without waiting and apply results in the order they arrive (NFR7.5)
     await Promise.all([loadNameAndPreconditions(), loadCandidates()]);
   }
 
@@ -271,7 +271,7 @@ export function createAddAssistStore(options: AddAssistStoreOptions): AddAssistS
     });
   }
 
-  /** 1 件ずつ順に追加し、失敗か中止の印でそこで止める（NFR3.5、security-design.md §6） */
+  /** Adds one at a time in order, stopping at a failure or the abort flag (NFR3.5, security-design.md §6) */
   async function addInOrder(type: string, targets: AddCandidate[], result: AddResult) {
     for (const [index, candidate] of targets.entries()) {
       if (abortRequested) {
@@ -295,8 +295,8 @@ export function createAddAssistStore(options: AddAssistStoreOptions): AddAssistS
 
   async function runAdd(): Promise<void> {
     if (addRunning || componentType === null || !canAdd(state)) return;
-    // 印を立ててから phase を adding にし、最初の addComponent を呼ぶ（NFR3.4）。
-    // result は閉じると画面を読み込み直すので、印は下ろさない
+    // Set the flag, then phase = adding, then call the first addComponent (NFR3.4).
+    // Closing the result reloads the page, so the flag is never cleared
     addRunning = true;
     const targets = selectedInNameOrder(state.candidates, state.selection);
     const result: AddResult = { succeeded: [], failed: [], untried: [], aborted: false };

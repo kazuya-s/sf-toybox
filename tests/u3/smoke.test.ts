@@ -2,8 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { ACTIVE_TAB_ID, popupState } from './helpers/chrome-popup';
 import { buildManyComponents, loadComponents } from './helpers/fixtures';
 
-describe('U3 のテストの道具', () => {
-  it('chrome.tabs の模擬と架空の一覧が使える', async () => {
+describe('U3 test tooling', () => {
+  it('the chrome.tabs mock and the fake list are available', async () => {
     const tabs = await new Promise<chrome.tabs.Tab[]>((resolve) =>
       chrome.tabs.query({ active: true, currentWindow: true }, resolve),
     );

@@ -1,6 +1,6 @@
 /**
- * チェック欄つきの候補の一覧と、一致 0 件の案内（frontend-components.md、BR2.3、BR2.4、NFR7.4）。
- * 絞り込んだ行だけを描く。名前と親オブジェクトは React の通常の表示だけで出す（NFR3.1）。
+ * Candidate list with checkboxes, and the zero-match notice (frontend-components.md, BR2.3, BR2.4, NFR7.4).
+ * Renders only the filtered rows. Names and parent objects are rendered as plain React text only (NFR3.1).
  */
 import type { AddCandidate } from '../../changeset/index';
 import { t } from '../../i18n/presentation';

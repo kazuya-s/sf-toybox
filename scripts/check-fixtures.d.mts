@@ -1,4 +1,4 @@
-/** scripts/check-fixtures.mjs の型の宣言（テストから読み込むため） */
+/** Type declarations for scripts/check-fixtures.mjs (imported by tests) */
 export declare const ALLOWED_HOST: string;
 
 export declare function checkFixtureText(name: string, text: string): string[];

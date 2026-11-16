@@ -1,9 +1,9 @@
 /**
- * 送信変更セットの読み込み（ChangeSet、ADR-001）。
- * C4 の listComponents と、C5 の getChangeSet・checkAddPreconditions・listAddCandidates。
+ * Loading outbound change sets (ChangeSet, ADR-001).
+ * C4 listComponents, and C5 getChangeSet, checkAddPreconditions and listAddCandidates.
  *
- * 公開する関数は、すべて try/catch で包み、例外を外に出さずに Result を返す（NFR5.1）。
- * 失敗の記録は使う側（U3・U4）が行う（BR1.7）。
+ * Every public function is wrapped in try/catch and returns a Result without throwing (NFR5.1).
+ * Failures are logged by the caller (U3, U4) (BR1.7).
  */
 import { getPage } from '../salesforce/connection';
 import {
@@ -33,7 +33,7 @@ const ADD = CHANGE_SET_MARKERS.add;
 type DetailHeader = { name: string; status: ChangeSetStatus };
 type DetailPage = DetailHeader & { components: ChangeSetComponent[] };
 
-/** 追加画面の 1 行。送るときに使うチェック欄の名前と値も持つ */
+/** One row of the Add page. Also holds the checkbox name and value used when sending */
 export type CandidateRow = AddCandidate & { checkbox: FormField };
 export type AddPage = { candidates: CandidateRow[]; form: PageForm };
 
@@ -41,7 +41,7 @@ function unexpected<T>(message: string): Result<T> {
   return fail('unexpectedResponse', message);
 }
 
-/** 変更セットの状態を、詳細画面の表示から読む（BR2.4） */
+/** Reads the change set status from the detail page (BR2.4) */
 function readStatus(page: ParsedPage): ChangeSetStatus {
   if (page.exists(DETAIL.uploadAction)) return 'open';
   if (page.exists(DETAIL.uploadedNotice) || page.exists(DETAIL.uploadHistoryRows)) {
@@ -56,7 +56,7 @@ function readDetailHeader(page: ParsedPage): Result<DetailHeader> {
   return ok({ name, status: readStatus(page) });
 }
 
-/** 詳細画面のコンポーネントの表を読む。想定と違う形なら推測せずに失敗にする（BR2.5、BR2.7） */
+/** Reads the component table on the detail page. If the shape is unexpected, fails instead of guessing (BR2.5, BR2.7) */
 function readComponents(page: ParsedPage): Result<ChangeSetComponent[]> {
   const table = page.table(DETAIL.componentTable);
   if (!table) return unexpected(ERROR_MESSAGES.missingTable);
@@ -90,7 +90,7 @@ function readDetailPage(page: ParsedPage): Result<PageRead<DetailPage>> {
   });
 }
 
-/** (componentType, apiName, parentObject) が同じものを、最初の順のまま 1 件にまとめる（BR2.6） */
+/** Merges rows with the same (componentType, apiName, parentObject) into one, keeping first-seen order (BR2.6) */
 function dedupeComponents(components: ChangeSetComponent[]): ChangeSetComponent[] {
   const seen = new Set<string>();
   return components.filter((component) => {
@@ -105,7 +105,7 @@ function dedupeComponents(components: ChangeSetComponent[]): ChangeSetComponent[
   });
 }
 
-/** 種類の表示名: 指定した値の選択肢の表示名。なければ選ばれている選択肢の表示名 */
+/** Type label: the label of the option with the given value, otherwise the label of the selected option */
 function readTypeLabel(page: ParsedPage, componentType: string | undefined): string | null {
   const options = page.options(ADD.typeSelect);
   const option =
@@ -114,7 +114,7 @@ function readTypeLabel(page: ParsedPage, componentType: string | undefined): str
   return option?.label || null;
 }
 
-/** 追加画面の 1 ページを読む（BR3.2、BR3.6）。フォーム・種類・表のどれかがなければ失敗 */
+/** Reads one page of the Add page (BR3.2, BR3.6). Fails if the form, type or table is missing */
 export function readAddPage(
   page: ParsedPage,
   componentType: string | undefined,
@@ -147,7 +147,7 @@ export function readAddPage(
   return ok({ data: { candidates, form }, rowCount: candidates.length });
 }
 
-/** C4: 変更セットのコンポーネントを全ページ読んで 1 つにまとめる（BR2.1〜BR2.7） */
+/** C4: reads every page of the change set's components and merges them (BR2.1-BR2.7) */
 export async function listComponents({
   changeSetId,
   onProgress,
@@ -173,7 +173,7 @@ export async function listComponents({
   }
 }
 
-/** C5: 変更セットの名前と状態（詳細画面の 1 ページ目から） */
+/** C5: change set name and status (from the first page of the detail page) */
 export async function getChangeSet({
   changeSetId,
 }: {
@@ -192,8 +192,8 @@ export async function getChangeSet({
 }
 
 /**
- * C5: 追加の前の確認（BR3.1）。ログイン・変更セットの状態・追加画面を開けるかを確かめる。
- * 状態が unknown のときは止めない。
+ * C5: pre-add check (BR3.1). Verifies the login, the change set status and that the Add page can be opened.
+ * Does not block when the status is unknown.
  */
 export async function checkAddPreconditions({
   changeSetId,
@@ -215,7 +215,7 @@ export async function checkAddPreconditions({
   }
 }
 
-/** C5: 追加画面の候補を全ページ読んで返す（BR3.6） */
+/** C5: reads every page of candidates on the Add page (BR3.6) */
 export async function listAddCandidates({
   changeSetId,
   componentType,

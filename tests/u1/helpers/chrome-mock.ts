@@ -1,14 +1,14 @@
 /**
- * テスト用の chrome の自作の模擬（unit-test-instructions.md「模擬と差し替え」）。
- * storage.local（成功と失敗の切り替え）、storage.sync（呼ばれたら記録）、
- * runtime（id・onMessage・getURL）、i18n（_locales を読む getMessage・getUILanguage）を置き換える。
+ * Hand-written chrome mock for tests (unit-test-instructions.md "Mocks and stubs").
+ * Replaces storage.local (switchable success/failure), storage.sync (records calls),
+ * runtime (id, onMessage, getURL) and i18n (getMessage reading _locales, getUILanguage).
  */
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
 export const TEST_EXTENSION_ID = 'sftoybox-test-extension-id';
 
-/** 失敗のしかた。lastError は Chrome がコールバックで知らせる失敗、throw は呼び出し自体が投げる失敗 */
+/** How a call fails: lastError is a failure Chrome reports in the callback, throw is the call itself throwing */
 export type StorageFailureMode = 'none' | 'lastError' | 'throw';
 
 type MessageListener = (
@@ -160,7 +160,7 @@ const i18n = {
   getMessage(name: string): string {
     const own = readLocaleMessages(currentLocale())[name];
     if (own) return own.message;
-    // Chrome と同じく、見つからなければ既定の言語（en）を使い、それもなければ空文字
+    // Like Chrome: fall back to the default locale (en) when missing, then to an empty string
     return readLocaleMessages('en')[name]?.message ?? '';
   },
   getUILanguage(): string {
@@ -174,7 +174,7 @@ export function installChromeMock(): void {
   (globalThis as unknown as { chrome: typeof chromeMock }).chrome = chromeMock;
 }
 
-/** テストごとに元に戻す */
+/** Resets everything for each test */
 export function resetChromeMock(): void {
   state = createState();
   runtime.lastError = undefined;
@@ -197,8 +197,8 @@ export function setUiLanguage(language: string): void {
 }
 
 /**
- * 登録された onMessage の聞き手に、メッセージを届ける。
- * 聞き手が答えたらその値、どの聞き手も答えなければ undefined で解決する。
+ * Delivers a message to the registered onMessage listeners.
+ * Resolves with a listener's answer, or undefined if no listener answers.
  */
 export function dispatchRuntimeMessage(
   message: unknown,

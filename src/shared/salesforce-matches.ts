@@ -1,7 +1,7 @@
 /**
- * 拡張機能を組み込む Salesforce のドメイン（NFR2.2、security-design.md §2）。
- * content script の matches と web_accessible_resources の matches の両方に使う。
- * 変えるときは scripts/check-manifest.mjs の許可の一覧と docs/store/permissions.md も直す。
+ * Salesforce domains the extension runs on (NFR2.2, security-design.md §2).
+ * Used for both the content script matches and the web_accessible_resources matches.
+ * When changing them, also update the allow list in scripts/check-manifest.mjs and docs/store/permissions.md.
  */
 export const SALESFORCE_MATCHES = [
   'https://*.salesforce.com/*',

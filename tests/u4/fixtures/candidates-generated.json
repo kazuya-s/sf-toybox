@@ -1,5 +1,5 @@
 {
-  "description": "多くの候補の作り方（NFR7.4）。tests/u4/helpers/fixtures.ts が、この値から架空の候補を count 件作る。ID は keyPrefix のあとに 0 の並びと連番",
+  "description": "Recipe for many candidates (NFR7.4). tests/u4/helpers/fixtures.ts builds count fake candidates from these values. IDs are keyPrefix, zeros and a sequence number",
   "orgHost": "example.my.salesforce.com",
   "componentType": "CustomField",
   "count": 2000,

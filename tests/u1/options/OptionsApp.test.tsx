@@ -16,13 +16,13 @@ async function renderOptions(supportUrl: string | null = null) {
   return { user };
 }
 
-describe('設定画面（OptionsApp）', () => {
+describe('Options page (OptionsApp)', () => {
   beforeEach(() => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
     vi.spyOn(console, 'error').mockImplementation(() => undefined);
   });
 
-  it('初回は全ツールが ON で、名前と説明が出る（AC1.1.2、AC1.1.8）', async () => {
+  it('first run shows every tool ON with its name and description (AC1.1.2, AC1.1.8)', async () => {
     await renderOptions();
 
     expect(screen.getAllByRole('switch')).toHaveLength(TOOL_DEFINITIONS.length);
@@ -32,7 +32,7 @@ describe('設定画面（OptionsApp）', () => {
     expect(screen.queryByTestId('options-load-failed')).not.toBeInTheDocument();
   });
 
-  it('切り替えると保存され、「保存しました」が 2 秒出る（AC1.1.1、BR1.5）', async () => {
+  it('toggling saves and shows "Saved" for 2 seconds (AC1.1.1, BR1.5)', async () => {
     const { user } = await renderOptions();
 
     await user.click(screen.getByTestId(SWITCH));
@@ -41,7 +41,7 @@ describe('設定画面（OptionsApp）', () => {
     await waitFor(() =>
       expect(screen.getByTestId('options-saved-notice')).toHaveTextContent('保存しました'),
     );
-    // 保存は全ツールの値で行う（U3 で changeset-viewer・changeset-add-assist を一覧に足した）
+    // Saves use every tool's value (U3 added changeset-viewer and changeset-add-assist to the list)
     expect(mockState().local.settings).toEqual(
       validSettings({
         'page-size-switcher': { enabled: false },
@@ -54,7 +54,7 @@ describe('設定画面（OptionsApp）', () => {
     expect(screen.getByTestId('options-saved-notice')).toHaveTextContent('');
   });
 
-  it('保存に失敗すると元に戻り、失敗の文言が出る（BR1.5）', async () => {
+  it('a failed save reverts the toggle and shows the failure message (BR1.5)', async () => {
     const { user } = await renderOptions();
     setStorageFailure({ set: 'lastError' });
 
@@ -67,7 +67,7 @@ describe('設定画面（OptionsApp）', () => {
     expect(screen.getByTestId('options-saved-notice')).toHaveTextContent('');
   });
 
-  it('読み込みに失敗したときは、すべて ON でお知らせを出す（AC1.1.5、BR1.3）', async () => {
+  it('when loading fails, everything is ON and a notice is shown (AC1.1.5, BR1.3)', async () => {
     mockState().local.settings = { schemaVersion: 2, tools: {} };
 
     await renderOptions();
@@ -78,7 +78,7 @@ describe('設定画面（OptionsApp）', () => {
     expect(screen.getByTestId(SWITCH)).toBeChecked();
   });
 
-  it('再読み込みで反映されることを案内する（BR1.7）', async () => {
+  it('explains that changes apply after reloading (BR1.7)', async () => {
     await renderOptions();
 
     expect(screen.getByTestId('options-reload-note')).toHaveTextContent(
@@ -86,7 +86,7 @@ describe('設定画面（OptionsApp）', () => {
     );
   });
 
-  it('問い合わせのリンク: URL があればリンク、なければ「リポジトリの準備中」（AC1.1.6）', async () => {
+  it('support link: a link when a URL exists, otherwise "Repository coming soon" (AC1.1.6)', async () => {
     const url = 'https://github.com/example/sf-toybox/issues';
     const first = render(<OptionsApp supportUrl={url} />);
     expect(await screen.findByTestId('options-support-link')).toHaveAttribute('href', url);
@@ -106,7 +106,7 @@ describe('設定画面（OptionsApp）', () => {
     expect(resolveSupportUrl(url)).toBe(url);
   });
 
-  it('最近のエラーの一覧を出し、「消去」で消せる（security-design.md §5）', async () => {
+  it('lists recent errors and "Clear" removes them (security-design.md §5)', async () => {
     mockState().local.errorLog = [
       {
         toolId: 'page-size-switcher',
@@ -129,7 +129,7 @@ describe('設定画面（OptionsApp）', () => {
     expect(mockState().local.errorLog).toEqual([]);
   });
 
-  it('消去に失敗したら、その旨を出す', async () => {
+  it('shows a message when clearing fails', async () => {
     mockState().local.errorLog = [
       {
         toolId: 'core',
@@ -148,15 +148,12 @@ describe('設定画面（OptionsApp）', () => {
     expect(screen.getByTestId('recent-errors-item')).toBeInTheDocument();
   });
 
-  it.each(['ja', 'en'])(
-    '説明文に速さの効果を言い切る文言がない（%s、AC1.1.7）',
-    async (language) => {
-      setUiLanguage(language);
+  it.each(['ja', 'en'])('no description promises speed gains (%s, AC1.1.7)', async (language) => {
+    setUiLanguage(language);
 
-      await renderOptions();
+    await renderOptions();
 
-      const text = screen.getByTestId('options-app').textContent ?? '';
-      expect(text).not.toMatch(/軽くな|速くな|faster|speeds? up|lighter/i);
-    },
-  );
+    const text = screen.getByTestId('options-app').textContent ?? '';
+    expect(text).not.toMatch(/軽くな|速くな|faster|speeds? up|lighter/i);
+  });
 });

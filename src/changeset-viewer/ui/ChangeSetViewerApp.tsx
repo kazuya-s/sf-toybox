@@ -1,7 +1,7 @@
 /**
- * ツールバーの画面（frontend-components.md の ChangeSetViewerApp、mockups.md S3、functional-spec.md F1・F3・F4）。
- * 構成: Header、StatusView、PartialBanner、FilterBar、ComponentTable、FilteredEmpty、Footer。
- * 全体をエラー境界で包む（NFR5.1）。絞り込みと並べ替えは useMemo で計算し、頼み直さない（NFR7.4）。
+ * The toolbar popup (ChangeSetViewerApp in frontend-components.md, mockups.md S3, functional-spec.md F1, F3, F4).
+ * Layout: Header, StatusView, PartialBanner, FilterBar, ComponentTable, FilteredEmpty, Footer.
+ * Wrapped in an error boundary (NFR5.1). Filtering and sorting use useMemo and never re-request (NFR7.4).
  */
 import { useMemo, useState } from 'react';
 import { t } from '../../i18n/presentation';
@@ -20,7 +20,7 @@ function openSettings(): void {
 
 function ViewerContent() {
   const { phase, isLoading, retry } = useViewerLoader();
-  // 条件は読み直しても残す（BR1.5）
+  // Conditions survive a reload (BR1.5)
   const [filter, setFilter] = useState<RowFilter>(NO_FILTER);
   const [sort, setSort] = useState<SortState>(INITIAL_SORT);
   const collator = useMemo(() => createCollator(chrome.i18n.getUILanguage()), []);

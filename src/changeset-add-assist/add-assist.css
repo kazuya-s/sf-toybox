@@ -1,8 +1,8 @@
 /*
- * 追加支援に当てるスタイル（U4 frontend-components.md、BR1.5）。
- * U1 の mountWithSlds が入れる共通の SLDS（assets/slds.css）に加えて、カード・チェック欄・選択欄の
- * SLDS の CSS だけを取り込み、ビルドで拡張機能に同梱する。外部の配信元からは読み込まない。
- * Shadow DOM の中に置くため、src/changeset-add-assist/mount.tsx が :root を :host に置き換えて使う。
+ * Styles for the add assistant (U4 frontend-components.md, BR1.5).
+ * On top of the shared SLDS (assets/slds.css) that U1's mountWithSlds injects, imports only the SLDS CSS for
+ * cards, checkboxes and selects, bundled into the extension at build time. Nothing is loaded from an external CDN.
+ * Because it lives inside a Shadow DOM, src/changeset-add-assist/mount.tsx rewrites :root to :host.
  */
 @import '@salesforce-ux/design-system/css/cards/base/index.css';
 @import '@salesforce-ux/design-system/css/checkbox/base/index.css';
@@ -35,7 +35,7 @@
   min-width: 16rem;
 }
 
-/* 横幅が 1024px 以下のときは、親オブジェクトの選択を 2 行目に折り返す */
+/* At 1024px wide or less, wrap the parent object select onto a second line */
 @media (max-width: 1024px) {
   .sftoybox-add-assist__parent {
     flex-basis: 100%;

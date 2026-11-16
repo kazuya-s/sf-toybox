@@ -1,11 +1,11 @@
 /**
- * U3 の画面の型（functional-spec.md「状態の移り変わり」、frontend-components.md）。
- * U3 は自分のデータを持たず、表示には C4 の ChangeSetComponents を使う。
+ * Types for the U3 screen (functional-spec.md "State transitions", frontend-components.md).
+ * U3 has no data of its own; it displays C4's ChangeSetComponents.
  */
 import type { ChangeSetComponent, ChangeSetComponents } from '../changeset';
 import type { Result } from '../shared/result';
 
-/** 画面の状態（9 種類） */
+/** Screen state (9 kinds) */
 export type ViewerState =
   | 'disabled'
   | 'wrong-page'
@@ -17,24 +17,24 @@ export type ViewerState =
   | 'error'
   | 'filtered-empty';
 
-/** 一覧の結果から決まる状態（BR1.4） */
+/** State derived from the list result (BR1.4) */
 export type ResultState = Extract<
   ViewerState,
   'default' | 'empty' | 'partial' | 'session-expired' | 'error'
 >;
 
-/** 並べ替えの列 */
+/** Sort column */
 export type SortColumn = 'componentType' | 'apiName' | 'parentObject';
 
-/** 並べ替えの向き（aria-sort の値と同じ） */
+/** Sort direction (same values as aria-sort) */
 export type SortDirection = 'ascending' | 'descending';
 
 export type SortState = { column: SortColumn; direction: SortDirection };
 
-/** 絞り込みの条件。type が null なら「すべて」 */
+/** Filter conditions. type null means "All" */
 export type RowFilter = { name: string; type: string | null };
 
-/** C4 の返事 */
+/** C4 response */
 export type ComponentsResult = Result<ChangeSetComponents>;
 
 export type { ChangeSetComponent, ChangeSetComponents };

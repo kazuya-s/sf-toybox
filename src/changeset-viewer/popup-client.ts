@@ -1,9 +1,9 @@
 /**
- * ツールバーの画面からページ側への問い合わせ（rules.md BR1.2〜BR1.4、performance-design.md §2）。
- * - タブは chrome.tabs.query の結果の id だけを使う（URL は読まない。tabs の権限を求めない。BR4.2）
- * - sftoybox/page-info は 3 秒、sftoybox/changeset/components は 5 分で打ち切る
- * - 進み具合は、この拡張機能・今のタブ・頼んだ changeSetId のものだけを使う（NFR7.2）
- * - 受け取った値は、決めた形かどうかを確かめてから使う（拡張機能の外との境目のため）
+ * Requests from the toolbar popup to the page (rules.md BR1.2-BR1.4, performance-design.md §2).
+ * - Uses only the id from chrome.tabs.query (never reads the URL; no tabs permission needed; BR4.2)
+ * - Times out sftoybox/page-info after 3 seconds and sftoybox/changeset/components after 5 minutes
+ * - Uses progress only from this extension, the current tab and the requested changeSetId (NFR7.2)
+ * - Validates received values against the expected shape before use (they cross a boundary)
  */
 import type { ChangeSetComponents, LoadProgress } from '../changeset';
 import { CHANGESET_COMPONENTS_CHANNEL, CHANGESET_PROGRESS_CHANNEL } from '../page/channels';
@@ -11,9 +11,9 @@ import { PAGE_INFO_CHANNEL } from '../page/page-info-responder';
 import { APP_ERROR_KINDS, fail, type Result } from '../shared/result';
 import type { ComponentsResult } from './types';
 
-/** 画面の判定の答えを待つ時間（BR1.2） */
+/** How long to wait for the page detection answer (BR1.2) */
 export const PAGE_INFO_TIMEOUT_MS = 3_000;
-/** 一覧の返事を待つ時間（BR1.4） */
+/** How long to wait for the component list response (BR1.4) */
 export const COMPONENTS_TIMEOUT_MS = 5 * 60_000;
 
 export type PageCheck = { kind: 'detail'; changeSetId: string } | { kind: 'wrong-page' };
@@ -25,7 +25,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null;
 }
 
-/** アクティブなタブの ID。タブがなければ null */
+/** ID of the active tab; null if there is none */
 export function getActiveTabId(): Promise<number | null> {
   return new Promise((resolve) => {
     try {
@@ -43,7 +43,7 @@ export function getActiveTabId(): Promise<number | null> {
   });
 }
 
-/** タブにメッセージを送り、答え・すぐの失敗・時間切れのどれかを返す */
+/** Sends a message to a tab and returns the answer, an immediate failure or a timeout */
 function sendToTab(tabId: number, message: unknown, timeoutMs: number): Promise<SendOutcome> {
   return new Promise((resolve) => {
     let isSettled = false;
@@ -56,7 +56,7 @@ function sendToTab(tabId: number, message: unknown, timeoutMs: number): Promise<
     const timer = setTimeout(() => settle({ kind: 'timeout' }), timeoutMs);
     try {
       chrome.tabs.sendMessage(tabId, message, (response: unknown) => {
-        // 受け取るフレームがない・答えずに閉じた などは lastError で知らされる
+        // No receiving frame, closed without answering, etc. are reported via lastError
         if (chrome.runtime.lastError) settle({ kind: 'failed' });
         else settle({ kind: 'response', response });
       });
@@ -66,7 +66,7 @@ function sendToTab(tabId: number, message: unknown, timeoutMs: number): Promise<
   });
 }
 
-/** 画面の判定を問い合わせる。詳細画面でなければ wrong-page（BR1.2） */
+/** Asks for the page detection. Anything but the detail page is wrong-page (BR1.2) */
 export async function askPageInfo(tabId: number): Promise<PageCheck> {
   const outcome = await sendToTab(tabId, { channel: PAGE_INFO_CHANNEL }, PAGE_INFO_TIMEOUT_MS);
   if (outcome.kind !== 'response' || !isRecord(outcome.response)) return { kind: 'wrong-page' };
@@ -112,7 +112,7 @@ function isComponents(value: unknown): value is ChangeSetComponents {
   );
 }
 
-/** C4 の返事の形か */
+/** Whether this is a C4 response */
 function toComponentsResult(response: unknown): ComponentsResult {
   if (isRecord(response) && response.ok === true && isComponents(response.value)) {
     return { ok: true, value: response.value };
@@ -125,7 +125,7 @@ function toComponentsResult(response: unknown): ComponentsResult {
   return fail('unexpectedResponse', 'page side returned an unexpected response');
 }
 
-/** 進み具合の聞き手を作る。この拡張機能・今のタブ・頼んだ changeSetId のものだけを使う */
+/** Creates the progress listener. Uses only this extension, the current tab and the requested changeSetId */
 function createProgressListener(
   tabId: number,
   changeSetId: string,
@@ -141,8 +141,8 @@ function createProgressListener(
 }
 
 /**
- * 一覧を頼む（BR1.3、BR1.4）。進み具合の聞き手を先に登録し、終わったら外す。
- * 送信がすぐに失敗したら notFound、5 分で返事がなければ timeout の失敗を返す。
+ * Requests the component list (BR1.3, BR1.4). Registers the progress listener first and removes it at the end.
+ * Returns notFound if sending fails immediately, or timeout if no response arrives within 5 minutes.
  */
 export async function requestComponents(
   tabId: number,

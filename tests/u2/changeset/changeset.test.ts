@@ -21,21 +21,21 @@ import {
 const changeSetId = TEST_CHANGE_SET_ID;
 
 function valueOf<T>(result: Result<T>): T {
-  if (!result.ok) throw new Error(`成功を期待しました: ${result.error.kind}`);
+  if (!result.ok) throw new Error(`Expected success: ${result.error.kind}`);
   return result.value;
 }
 
 function errorOf<T>(result: Result<T>) {
-  if (result.ok) throw new Error('失敗を期待しました');
+  if (result.ok) throw new Error('Expected a failure');
   return result.error;
 }
 
-describe('変更セットの読み込み（ChangeSet、C4・C5）', () => {
+describe('Loading change sets (ChangeSet, C4, C5)', () => {
   beforeEach(() => {
     useSalesforceLocation();
   });
 
-  it('ID の形が違うと、送らずに notFound を返す', async () => {
+  it('returns notFound without sending when the ID is malformed', async () => {
     const mock = installFetchMock();
 
     const results: Result<unknown>[] = [
@@ -56,7 +56,7 @@ describe('変更セットの読み込み（ChangeSet、C4・C5）', () => {
     expect(mock.calls).toEqual([]);
   });
 
-  it('名前・状態・行を読み、親オブジェクトが空なら null にする（BR2.4、BR2.5）', async () => {
+  it('reads name, status and rows; an empty parent object becomes null (BR2.4, BR2.5)', async () => {
     installFetchMock().route(DETAIL_PAGE_1, html(readFixture('detail-single.html')));
 
     const result = valueOf(await listComponents({ changeSetId }));
@@ -73,7 +73,7 @@ describe('変更セットの読み込み（ChangeSet、C4・C5）', () => {
     });
   });
 
-  it('ページの境目の重なりを 1 件にまとめ、最初に読めた順を保つ（BR2.6）', async () => {
+  it('merges overlap at page boundaries into one, keeping first-seen order (BR2.6)', async () => {
     installFetchMock()
       .route(DETAIL_PAGE_1, html(readFixture('detail-page1.html')))
       .route(DETAIL_PAGE_2, html(readFixture('detail-page2.html')))
@@ -92,7 +92,7 @@ describe('変更セットの読み込み（ChangeSet、C4・C5）', () => {
     expect(result.complete).toBe(true);
   });
 
-  it('表の列が欠けたページからは推測で取り出さない（BR2.7）', async () => {
+  it('never guesses rows from a page whose table lacks a column (BR2.7)', async () => {
     const mock = installFetchMock()
       .route(DETAIL_PAGE_1, [
         html(readFixture('detail-missing-column.html')),
@@ -116,7 +116,7 @@ describe('変更セットの読み込み（ChangeSet、C4・C5）', () => {
     expect(mock.count(DETAIL_PAGE_3)).toBe(0);
   });
 
-  it('状態の open・uploaded・unknown を読み分ける（BR2.4）', async () => {
+  it('distinguishes the open, uploaded and unknown statuses (BR2.4)', async () => {
     installFetchMock().route(DETAIL_PAGE_1, [
       html(readFixture('detail-single.html')),
       html(readFixture('detail-uploaded.html')),
@@ -134,7 +134,7 @@ describe('変更セットの読み込み（ChangeSet、C4・C5）', () => {
     expect(errorOf(noName).message).toBe(ERROR_MESSAGES.missingName);
   });
 
-  it('checkAddPreconditions: uploaded は changeSetLocked、フォームなしは失敗、unknown は止めない（BR3.1）', async () => {
+  it('checkAddPreconditions: uploaded is changeSetLocked, no form fails, unknown does not block (BR3.1)', async () => {
     const mock = installFetchMock()
       .route(DETAIL_PAGE_1, [
         html(readFixture('detail-uploaded.html')),
@@ -164,7 +164,7 @@ describe('変更セットの読み込み（ChangeSet、C4・C5）', () => {
     expect(unknown).toEqual({ ok: true, value: undefined });
   });
 
-  it('checkAddPreconditions: ログイン切れ・権限なしをその種類で返す', async () => {
+  it('checkAddPreconditions: returns session expiry and missing permission as those kinds', async () => {
     installFetchMock()
       .route(DETAIL_PAGE_1, [
         redirect(),
@@ -181,7 +181,7 @@ describe('変更セットの読み込み（ChangeSet、C4・C5）', () => {
     expect(kinds).toEqual(['sessionExpired', 'permissionDenied', 'permissionDenied']);
   });
 
-  it('listAddCandidates: 2 ページの候補をまとめ、親オブジェクトがない行は null（BR3.6）', async () => {
+  it('listAddCandidates: merges two pages of candidates; rows without a parent object get null (BR3.6)', async () => {
     installFetchMock()
       .route(ADD_PAGE_1, html(readFixture('add-page1.html')))
       .route(ADD_PAGE_2, html(readFixture('add-page2.html')));

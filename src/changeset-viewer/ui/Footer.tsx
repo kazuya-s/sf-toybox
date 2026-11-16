@@ -1,10 +1,10 @@
 /**
- * 件数と出力のボタン（BR2.5、BR2.6、BR3.8）。
- * 出力の関数はボタンの onClick の中からだけ呼ばれる（NFR1.2。呼ぶのは ChangeSetViewerApp の処理）。
+ * Counts and output buttons (BR2.5, BR2.6, BR3.8).
+ * Output functions are called only from the buttons' onClick (NFR1.2; the handlers live in ChangeSetViewerApp).
  */
 import { t } from '../../i18n/presentation';
 
-/** 出力の結果の表示。null なら何も出さない */
+/** Output result notice. null shows nothing */
 export type ActionNoticeKind = 'copied' | 'saved' | 'copyFailed' | 'saveFailed' | null;
 
 export type FooterProps = {

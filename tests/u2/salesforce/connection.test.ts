@@ -15,16 +15,16 @@ import { TEST_ORIGIN, readFixture, useSalesforceLocation } from '../helpers/loca
 const PAGE = '/changemgmt/outboundChangeSetDetailPage.apexp?id=0A2000000000001';
 
 function errorOf<T>(result: Result<T>) {
-  if (result.ok) throw new Error('失敗を期待しました');
+  if (result.ok) throw new Error('Expected a failure');
   return result.error;
 }
 
-describe('Salesforce とのやり取り（connection、BR1.1〜BR1.4、BR1.7）', () => {
+describe('Salesforce connection (connection, BR1.1-BR1.4, BR1.7)', () => {
   beforeEach(() => {
     useSalesforceLocation();
   });
 
-  it('送り先の確かめ: 組織の外や形の違う送り先には送らず unexpectedResponse を返す（NFR1.1、NFR1.4）', async () => {
+  it('destination check: never sends outside the org or to a malformed destination; returns unexpectedResponse (NFR1.1, NFR1.4)', async () => {
     const mock = installFetchMock();
     const formBase = `${TEST_ORIGIN}/p/mfpkg/AddToPackageFromChangeMgmtUi`;
     const rejected = [
@@ -51,7 +51,7 @@ describe('Salesforce とのやり取り（connection、BR1.1〜BR1.4、BR1.7）'
     expect(mock.calls).toEqual([]);
   });
 
-  it('同じ組織へは credentials: same-origin、redirect: manual で送り、フォームの送り先は画面の URL を基準に解く（NFR2.2）', async () => {
+  it('sends to the same org with credentials: same-origin and redirect: manual, and resolves form actions against the page URL (NFR2.2)', async () => {
     const mock = installFetchMock()
       .route(PAGE, html(readFixture('detail-single.html')))
       .route('/p/mfpkg/add', redirect(), 'POST');
@@ -80,7 +80,7 @@ describe('Salesforce とのやり取り（connection、BR1.1〜BR1.4、BR1.7）'
     expect(mock.calls[1]?.body).toBe('token=test-token&ids=01p000000000001');
   });
 
-  it('転送とログイン切れ: GET への転送は sessionExpired、POST への転送は成功（BR1.4）', async () => {
+  it('redirects and session expiry: a redirect on GET is sessionExpired, on POST it is success (BR1.4)', async () => {
     installFetchMock().route(PAGE, redirect());
 
     const got = await request({ path: PAGE, method: 'GET' });
@@ -96,7 +96,7 @@ describe('Salesforce とのやり取り（connection、BR1.1〜BR1.4、BR1.7）'
     expect(posted).toEqual({ ok: true, value: { redirected: true } });
   });
 
-  it('ログイン画面・権限の画面・403・404・データなし・500 をそれぞれの種類に見分ける', async () => {
+  it('classifies the login page, privileges page, 403, 404, data not available and 500 into their kinds', async () => {
     installFetchMock()
       .route('/login-page', html(readFixture('login.html')))
       .route('/denied-page', html(readFixture('permission-denied.html')))
@@ -130,7 +130,7 @@ describe('Salesforce とのやり取り（connection、BR1.1〜BR1.4、BR1.7）'
     ]);
   });
 
-  it('通信の失敗は network で返し、送り直さない', async () => {
+  it('a network failure returns network and is not resent', async () => {
     const mock = installFetchMock().route(PAGE, networkError());
 
     const result = await request({ path: PAGE, method: 'GET' });
@@ -143,7 +143,7 @@ describe('Salesforce とのやり取り（connection、BR1.1〜BR1.4、BR1.7）'
     expect(mock.calls).toHaveLength(1);
   });
 
-  it('30 秒の打ち切り: 応答も本文も、来なければ 30 秒で timeout になる（NFR5.2）', async () => {
+  it('30-second timeout: a missing response or body becomes timeout at 30 seconds (NFR5.2)', async () => {
     vi.useFakeTimers();
     installFetchMock().route('/no-headers', hangHeaders()).route('/no-body', hangBody());
 
@@ -167,7 +167,7 @@ describe('Salesforce とのやり取り（connection、BR1.1〜BR1.4、BR1.7）'
     expect(vi.getTimerCount()).toBe(0);
   });
 
-  it('失敗を Result で返す: 中で例外が起きても外に出ない（NFR5.1）', async () => {
+  it('failures are returned as Result: an internal exception never escapes (NFR5.1)', async () => {
     vi.stubGlobal(
       'fetch',
       vi.fn(() => {
@@ -195,7 +195,7 @@ describe('Salesforce とのやり取り（connection、BR1.1〜BR1.4、BR1.7）'
     }
   });
 
-  it('AppError の中身: message は決めた識別子だけで、detail は null。失敗しても送り直さない（NFR1.3）', async () => {
+  it('AppError content: message is a fixed ID only and detail is null; never resent on failure (NFR1.3)', async () => {
     const mock = installFetchMock().route(PAGE, html('<p>TestChangeSet secret</p>', 500));
     const allowed = new Set<string>(Object.values(ERROR_MESSAGES));
 

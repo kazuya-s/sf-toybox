@@ -1,89 +1,89 @@
 /**
- * U2 の中で使うやり取りの形（functional-design/entities.md の SalesforceRequest・SalesforcePage・LoadProgress）。
- * 外には C4・C5 の Result の形で返す。どれも保存しない。
+ * Shapes used inside U2 (SalesforceRequest, SalesforcePage, LoadProgress in functional-design/entities.md).
+ * Exposed outside as C4/C5 Result shapes. Nothing is stored.
  */
 
 export type HttpMethod = 'GET' | 'POST';
 
-/** フォームの 1 項目（名前と値） */
+/** One form field (name and value) */
 export type FormField = { name: string; value: string };
 
-/** SalesforceConnection に頼む 1 回のやり取り（BR1.1〜BR1.3） */
+/** One request made through SalesforceConnection (BR1.1-BR1.3) */
 export type SalesforceRequest = {
   /**
-   * 送り先。base がないときは / で始まる組織の中のパスだけを受け付ける。
-   * base があるとき（フォームの送り先やページ送りのリンク）は、base を基準に解く。
+   * Destination. Without base, only an in-org path starting with / is accepted.
+   * With base (a form action or a pager link), it is resolved against base.
    */
   path: string;
   method: HttpMethod;
-  /** POST のときだけ。追加画面のフォームから読み取った項目と、選んだ 1 件分（BR3.2） */
+  /** POST only. Fields read from the Add page form plus the one selected item (BR3.2) */
   formFields?: FormField[];
-  /** path を解く基準。その値を読んだ画面の URL */
+  /** Base for resolving path: the URL of the page the value was read from */
   base?: string;
 };
 
-/** 読み取ってよい属性（security-design.md §4） */
+/** Attributes that may be read (security-design.md §4) */
 export type ReadableAttribute = 'value' | 'name' | 'action' | 'href';
 
-/** 表の読み方（目印の定義に置く） */
+/** How to read a table (defined with the markers) */
 export type TableSpec = {
   table: string;
   headerCells: string;
   rows: string;
-  /** 行のチェック欄。追加画面の候補の一覧のときだけ */
+  /** Row checkbox. Only for the candidate list on the Add page */
   checkbox?: string;
 };
 
 export type TableRow = {
-  /** 行の td・th の文字（前後と連続する空白を詰めたもの） */
+  /** Text of the row's td/th cells (trimmed, whitespace collapsed) */
   cells: string[];
   checkbox: FormField | null;
 };
 
 export type TableData = { headers: string[]; rows: TableRow[] };
 
-/** フォームの読み方（目印の定義に置く） */
+/** How to read a form (defined with the markers) */
 export type FormSpec = { form: string; submit: string };
 
 export type PageForm = {
-  /** 送り先（action 属性のそのままの値） */
+  /** Destination (the raw action attribute) */
   action: string;
-  /** すべての隠し項目 */
+  /** All hidden fields */
   hiddenFields: FormField[];
-  /** 「追加」ボタンの名前と値 */
+  /** Name and value of the "Add" button */
   submit: FormField | null;
 };
 
 export type SelectOption = { value: string; label: string; selected: boolean };
 
 /**
- * 受け取った画面（HTML）を、スクリプトを動かさない文書として読み取ったもの（BR1.6）。
- * 返すのは文字と、決めた属性の値だけで、文書の要素は外に出さない。
+ * A received page (HTML) parsed as a document in which scripts never run (BR1.6).
+ * Returns only text and the chosen attribute values; document elements never leave.
  */
 export interface ParsedPage {
   exists(selector: string): boolean;
-  /** 最初に当たった要素の文字。なければ null */
+  /** Text of the first matching element; null if none */
   text(selector: string): string | null;
-  /** 最初に当たった要素の属性の値。なければ null */
+  /** Attribute value of the first matching element; null if none */
   attribute(selector: string, attribute: ReadableAttribute): string | null;
   table(spec: TableSpec): TableData | null;
   form(spec: FormSpec): PageForm | null;
   options(selectSelector: string): SelectOption[];
 }
 
-/** 読み取れた画面 */
+/** A page that was read */
 export type SalesforcePage = {
   redirected: false;
   status: number;
-  /** その画面を頼んだ URL。画面の中のリンクやフォームの送り先を解く基準 */
+  /** URL the page was requested from; the base for resolving its links and form actions */
   url: string;
   page: ParsedPage;
 };
 
-/** 追加の POST への転送の応答（BR1.4。読み直しへ進む） */
+/** Redirect response to the add POST (BR1.4; proceeds to the reload check) */
 export type SalesforceRedirect = { redirected: true };
 
 export type SalesforceResponse = SalesforcePage | SalesforceRedirect;
 
-/** 読み込みの進み具合（C4 の progress） */
+/** Load progress (C4 progress) */
 export type LoadProgress = { loadedPages: number; totalPages: number | null };

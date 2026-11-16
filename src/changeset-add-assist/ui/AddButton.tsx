@@ -1,7 +1,7 @@
 /**
- * 「選んだ n 件を追加」／「追加しています… (i / n)」（frontend-components.md、BR2.5、BR3.1、BR3.2、BR3.6）。
- * 押せるかどうかは state.ts の canAdd だけで決める。Enter での追加は、このボタンにフォーカスがあるときだけ
- * （ボタンの既定の動き）。追加中は、離れるときの文言をボタンの近くに常に出す。
+ * "Add n selected" / "Adding… (i / n)" (frontend-components.md, BR2.5, BR3.1, BR3.2, BR3.6).
+ * Enabled state comes from state.ts canAdd alone. Enter adds only when this button has focus
+ * (the button's default behavior). While adding, the leave-page notice is always shown next to the button.
  */
 import { t } from '../../i18n/presentation';
 import type { AddAssistPhase, AddProgress } from '../types';

@@ -2,8 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { readLocal, writeLocal } from '../../../src/storage/local-storage';
 import { mockState, setStorageFailure } from '../helpers/chrome-mock';
 
-describe('ローカル保存領域の窓口（local-storage）', () => {
-  it('local だけを呼び、sync は呼ばない（NFR1.2、BR1.1）', async () => {
+describe('Local storage gateway (local-storage)', () => {
+  it('calls only local, never sync (NFR1.2, BR1.1)', async () => {
     await writeLocal('settings', { schemaVersion: 1, tools: {} });
     await readLocal('settings');
 
@@ -13,7 +13,7 @@ describe('ローカル保存領域の窓口（local-storage）', () => {
   });
 
   it.each(['lastError', 'throw'] as const)(
-    '読み出しの失敗（%s）は storageFailed で返す',
+    'a read failure (%s) returns storageFailed',
     async (mode) => {
       setStorageFailure({ get: mode });
 
@@ -24,7 +24,7 @@ describe('ローカル保存領域の窓口（local-storage）', () => {
   );
 
   it.each(['lastError', 'throw'] as const)(
-    '書き込みの失敗（%s）は storageFailed で返し、値は変わらない',
+    'a write failure (%s) returns storageFailed and leaves the value unchanged',
     async (mode) => {
       setStorageFailure({ set: mode });
 
@@ -35,13 +35,13 @@ describe('ローカル保存領域の窓口（local-storage）', () => {
     },
   );
 
-  it('値がないときは ok で undefined を返す', async () => {
+  it('returns ok with undefined when there is no value', async () => {
     const result = await readLocal('settings');
 
     expect(result).toEqual({ ok: true, value: undefined });
   });
 
-  it('書いた値をそのまま読める', async () => {
+  it('reads back exactly what was written', async () => {
     const value = { schemaVersion: 1, tools: { 'page-size-switcher': { enabled: false } } };
 
     const written = await writeLocal('settings', value);

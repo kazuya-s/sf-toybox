@@ -1,18 +1,18 @@
 /**
- * U2 の関数（getChangeSet・checkAddPreconditions・listAddCandidates・addComponent）の差し替え
- * （U4 unit-test-instructions.md「模擬と差し替えの決まり」）。実際の組織にはつながない。
+ * Stubs for U2 functions (getChangeSet, checkAddPreconditions, listAddCandidates, addComponent)
+ * (U4 unit-test-instructions.md "Mock and stub rules"). Never connects to a real org.
  *
- * テストのファイルでは、次の 2 つの vi.mock でこの道具につなぐ（vi.mock は各ファイルで書く必要がある）。
+ * Test files hook into this helper with these two vi.mock calls (vi.mock must be written in each file):
  *
- *   vi.mock('<相対パス>/src/changeset/index', async (importOriginal) =>
- *     (await import('<相対パス>/tests/u4/helpers/u2-mock')).mockChangesetModule(await importOriginal()),
+ *   vi.mock('<relative path>/src/changeset/index', async (importOriginal) =>
+ *     (await import('<relative path>/tests/u4/helpers/u2-mock')).mockChangesetModule(await importOriginal()),
  *   );
- *   vi.mock('<相対パス>/src/salesforce/index', async () =>
- *     (await import('<相対パス>/tests/u4/helpers/u2-mock')).mockSalesforceModule(),
+ *   vi.mock('<relative path>/src/salesforce/index', async () =>
+ *     (await import('<relative path>/tests/u4/helpers/u2-mock')).mockSalesforceModule(),
  *   );
  *
- * 1 件ずつ、成功・失敗の種類・遅れ（解決を待たせる）・例外を決められる。
- * 呼ばれた順・引数・同時に走っている数を記録する。
+ * Each call can be set to succeed, fail with a kind, be delayed (held until resolved) or throw.
+ * Records call order, arguments and the number running at once.
  */
 import type { AddCandidates, AddRequest, OutboundChangeSet } from '../../../src/changeset/index';
 import { fail, ok, type AppErrorKind, type Result } from '../../../src/shared/result';
@@ -42,10 +42,10 @@ type Step<T> =
 export type U2FunctionName =
   'getChangeSet' | 'checkAddPreconditions' | 'listAddCandidates' | 'addComponent';
 
-/** 呼ばれた順の記録（すべての関数で共通） */
+/** Call order record (shared by all functions) */
 const callLog: { name: U2FunctionName; arg: unknown }[] = [];
 
-/** 1 つの関数の差し替え */
+/** Stub for one function */
 export class MockedU2Function<A, T> {
   readonly calls: A[] = [];
   active = 0;
@@ -60,31 +60,31 @@ export class MockedU2Function<A, T> {
     this.fallback = { kind: 'result', result: makeDefault() };
   }
 
-  /** 次の 1 回の結果を決める */
+  /** Sets the result of the next call */
   next(result: Result<T>): this {
     this.queue.push({ kind: 'result', result });
     return this;
   }
 
-  /** 次の 1 回を失敗にする */
+  /** Makes the next call fail */
   nextFail(kind: AppErrorKind, message = 'test.failure'): this {
     return this.next(fail<T>(kind, message));
   }
 
-  /** 次の 1 回で例外を投げる */
+  /** Makes the next call throw */
   nextThrow(error: unknown = new Error('unexpected failure in U2')): this {
     this.queue.push({ kind: 'throw', error });
     return this;
   }
 
-  /** 次の 1 回を、テストが解決するまで待たせる */
+  /** Holds the next call until the test resolves it */
   nextDeferred(): Deferred<Result<T>> {
     const deferred = createDeferred<Result<T>>();
     this.queue.push({ kind: 'deferred', deferred });
     return deferred;
   }
 
-  /** 決めた結果がなくなったあとに、毎回返す結果 */
+  /** Result returned every time once the set results run out */
   always(result: Result<T>): this {
     this.fallback = { kind: 'result', result };
     return this;
@@ -129,7 +129,7 @@ export const u2 = {
     ok({ candidates: candidatesFixture('basic'), complete: true, failedPages: 0 }),
   ),
   addComponent: new MockedU2Function<AddRequest, void>('addComponent', () => ok(undefined)),
-  /** すべての関数の、呼ばれた順 */
+  /** Call order of all functions */
   callLog,
   reset(): void {
     callLog.length = 0;
@@ -140,7 +140,7 @@ export const u2 = {
   },
 };
 
-/** src/changeset/index の差し替え。readSelectedComponentType など、ほかの書き出しは本物のまま */
+/** Stub for src/changeset/index. Other exports such as readSelectedComponentType stay real */
 export function mockChangesetModule<M extends object>(original: M): M {
   return {
     ...original,
@@ -150,7 +150,7 @@ export function mockChangesetModule<M extends object>(original: M): M {
   };
 }
 
-/** src/salesforce/index の差し替え */
+/** Stub for src/salesforce/index */
 export function mockSalesforceModule(): { addComponent: typeof u2.addComponent.invoke } {
   return { addComponent: u2.addComponent.invoke };
 }

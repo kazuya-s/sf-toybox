@@ -1,9 +1,9 @@
 /**
- * 取り決め共通の結果の型（contract-summary.md「共通の結果の型」）。
- * 失敗は例外として投げず、この型の値で返す。
+ * Result type shared by all contracts (contract-summary.md "Shared result type").
+ * Failures are returned as values of this type, never thrown.
  */
 
-/** AppError の種類。U1 で storageFailed を足した（functional-spec.md「取り決めへの追加」） */
+/** AppError kinds. U1 added storageFailed (functional-spec.md "Additions to the contracts") */
 export const APP_ERROR_KINDS = [
   'sessionExpired',
   'permissionDenied',
@@ -19,9 +19,9 @@ export type AppErrorKind = (typeof APP_ERROR_KINDS)[number];
 
 export type AppError = {
   kind: AppErrorKind;
-  /** 開発者向けの説明。利用者向けの文言は Presentation が kind から作る */
+  /** Developer-facing description. User-facing text is built from kind by Presentation */
   message: string;
-  /** 任意。Salesforce が返したエラーの要旨など */
+  /** Optional. A summary of the error Salesforce returned, etc. */
   detail: string | null;
 };
 

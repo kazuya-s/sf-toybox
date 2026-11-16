@@ -1,8 +1,8 @@
 /**
- * 追加支援のカード（frontend-components.md の AddAssistCard、functional-spec.md F1〜F4）。
- * 状態は state.ts の store から読み、検索の条件だけをこの部品が持つ。
- * 絞り込みは useMemo で計算し、U2 を呼び直さない（NFR7.4）。
- * 追加中と結果の欄のあいだは、検索・選択・ボタンを押せない（BR3.2、BR3.4）。
+ * The add-assist card (AddAssistCard in frontend-components.md, functional-spec.md F1-F4).
+ * State is read from the state.ts store; only the search conditions live in this component.
+ * Filtering is computed with useMemo and never calls U2 again (NFR7.4).
+ * While adding and while the result panel is open, search, selection and buttons are disabled (BR3.2, BR3.4).
  */
 import { useMemo, useState, useSyncExternalStore, type KeyboardEvent } from 'react';
 import { filterCandidates, parentOptions, selectionCounts } from '../filter';
@@ -32,7 +32,7 @@ export function AddAssistCard({ store }: AddAssistCardProps) {
   const isLocked = state.phase !== 'idle';
   const canRetryCandidates = state.blockReasons.some((reason) => reason.retry === 'candidates');
 
-  // 結果の欄が開いているときの Escape は「閉じる」と同じ（BR3.5）
+  // Escape while the result panel is open acts like "Close" (BR3.5)
   const handleKeyDown = (event: KeyboardEvent<HTMLElement>) => {
     if (event.key === 'Escape') store.closeResult();
   };

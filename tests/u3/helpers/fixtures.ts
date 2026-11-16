@@ -1,6 +1,6 @@
 /**
- * tests/u3/fixtures/*.json の架空の一覧を、C4 の ChangeSetComponents の形として読む。
- * 形が C4 と違えば、読み込みの時点で失敗させる（テストのデータが本物の形からずれないため）。
+ * Reads the fake lists in tests/u3/fixtures/*.json as C4 ChangeSetComponents.
+ * Fails at load time if the shape differs from C4 (so test data never drifts from the real shape).
  */
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
@@ -25,7 +25,7 @@ function asChangeSet(raw: unknown): OutboundChangeSet {
     typeof value.name !== 'string' ||
     !STATUSES.includes(value.status as ChangeSetStatus)
   ) {
-    throw new TypeError('fixture: changeSet の形が C4 と違います');
+    throw new TypeError('fixture: changeSet does not match the C4 shape');
   }
   return value as OutboundChangeSet;
 }
@@ -37,7 +37,7 @@ function asComponent(raw: unknown): ChangeSetComponent {
     typeof value.apiName !== 'string' ||
     !(value.parentObject === null || typeof value.parentObject === 'string')
   ) {
-    throw new TypeError('fixture: component の形が C4 と違います');
+    throw new TypeError('fixture: component does not match the C4 shape');
   }
   return value as ChangeSetComponent;
 }
@@ -45,11 +45,11 @@ function asComponent(raw: unknown): ChangeSetComponent {
 export type ComponentsFixture =
   'components-basic' | 'components-unsafe-names' | 'components-no-parent';
 
-/** 一覧の結果の例を読む。毎回新しいオブジェクトを返す */
+/** Reads an example list result. Returns a new object every time */
 export function loadComponents(name: ComponentsFixture): ChangeSetComponents {
   const raw = readJson(`${name}.json`);
   if (!Array.isArray(raw.components) || typeof raw.complete !== 'boolean') {
-    throw new TypeError(`fixture ${name}: C4 の形と違います`);
+    throw new TypeError(`fixture ${name}: does not match the C4 shape`);
   }
   return {
     changeSet: asChangeSet(raw.changeSet),
@@ -59,7 +59,7 @@ export function loadComponents(name: ComponentsFixture): ChangeSetComponents {
   };
 }
 
-/** components-many.json の作り方で、2000 件の一覧を作る（NFR7.4） */
+/** Builds a 2000-item list following components-many.json (NFR7.4) */
 export function buildManyComponents(): ChangeSetComponents {
   const raw = readJson('components-many.json');
   const count = Number(raw.count);

@@ -2,8 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { html, installFetchMock } from './helpers/fetch-mock';
 import { TEST_ORIGIN, useSalesforceLocation } from './helpers/location';
 
-describe('U2 のテストの道具', () => {
-  it('location を架空の組織にし、差し替えた fetch が決めた応答を返す', async () => {
+describe('U2 test tooling', () => {
+  it('sets location to a fake org and the stubbed fetch returns the defined response', async () => {
     useSalesforceLocation();
     const mock = installFetchMock().route('/smoke', html('<p>ok</p>'));
 

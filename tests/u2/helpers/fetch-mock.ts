@@ -1,11 +1,11 @@
 /**
- * fetch の差し替え（unit-test-instructions.md「模擬と差し替えの決まり」）。
- * パスごとに応答を決める。決めていないパスが呼ばれたら、そのテストを失敗させる。
- * 実際の組織にはつながない。
+ * fetch stub (unit-test-instructions.md "Mock and stub rules").
+ * Responses are defined per path. A call to an undefined path fails the test.
+ * Never connects to a real org.
  */
 import { onTestFinished, vi } from 'vitest';
 
-/** 応答の決め方 */
+/** How a response is defined */
 export type MockReply =
   | { kind: 'html'; status: number; body: string }
   | { kind: 'redirect' }
@@ -14,12 +14,12 @@ export type MockReply =
   | { kind: 'hangBody' };
 
 export type RecordedCall = {
-  /** 送り先の完全な URL */
+  /** Full destination URL */
   url: string;
-  /** pathname と search */
+  /** pathname and search */
   path: string;
   method: string;
-  /** POST の本文（URLSearchParams を文字列にしたもの） */
+  /** POST body (URLSearchParams as a string) */
   body: string | null;
   credentials: string | undefined;
   redirect: string | undefined;
@@ -29,15 +29,15 @@ type ReplySource = MockReply | MockReply[] | ((call: RecordedCall) => MockReply)
 
 export type FetchMock = {
   calls: RecordedCall[];
-  /** 決めていないパスへの呼び出し */
+  /** Calls to undefined paths */
   unmatched: string[];
-  /** 同時に走っていた fetch の数の最大 */
+  /** Maximum number of fetches running at once */
   readonly maxConcurrent: number;
-  /** パスの応答を決める。method を付けると、その方法の呼び出しだけに使う */
+  /** Defines a path's response. With method, it is used only for calls with that method */
   route(path: string, reply: ReplySource, method?: 'GET' | 'POST'): FetchMock;
-  /** 決めたパスに当たらないときに使う応答。null を返すと「決めていない送り先」になる */
+  /** Response used when no defined path matches. Returning null makes it an "undefined destination" */
   fallback(reply: (call: RecordedCall) => MockReply | null): FetchMock;
-  /** 送り先がこの組織のパスだった呼び出しの数 */
+  /** Number of calls whose destination was a path in this org */
   count(path: string, method?: 'GET' | 'POST'): number;
 };
 
@@ -53,12 +53,12 @@ export function networkError(): MockReply {
   return { kind: 'networkError' };
 }
 
-/** 応答の頭（headers）が来ない */
+/** Response headers never arrive */
 export function hangHeaders(): MockReply {
   return { kind: 'hangHeaders' };
 }
 
-/** 応答の頭は来るが、本文が来ない */
+/** Headers arrive but the body never does */
 export function hangBody(): MockReply {
   return { kind: 'hangBody' };
 }
@@ -80,7 +80,7 @@ function bodyToString(body: unknown): string | null {
   return String(body);
 }
 
-/** fetch を差し替える。テストの中で呼び、テストが終わると元に戻す */
+/** Replaces fetch. Call inside a test; it is restored when the test ends */
 export function installFetchMock(): FetchMock {
   const routes = new Map<string, ReplySource>();
   const used = new Map<string, number>();
@@ -182,7 +182,7 @@ export function installFetchMock(): FetchMock {
   onTestFinished(() => {
     vi.unstubAllGlobals();
     if (mock.unmatched.length > 0) {
-      throw new Error(`決めていない送り先が呼ばれました: ${mock.unmatched.join(', ')}`);
+      throw new Error(`An undefined destination was called: ${mock.unmatched.join(', ')}`);
     }
   });
   return mock;

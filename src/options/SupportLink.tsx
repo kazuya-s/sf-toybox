@@ -1,6 +1,6 @@
 import { t } from '../i18n/presentation';
 
-/** 問い合わせ窓口（GitHub の課題報告ページ）へのリンク（BR1.8、AC1.1.6） */
+/** Link to the support page (GitHub issues) (BR1.8, AC1.1.6) */
 export function SupportLink({ url }: { url: string | null }) {
   if (!url) {
     return (

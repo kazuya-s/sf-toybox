@@ -1,6 +1,6 @@
 /**
- * Salesforce の画面への件数バーの組み込み（contract-summary.md C2 の mountWithSlds、BR4.2、BR4.3）。
- * Shadow DOM の中に、同梱の SLDS と件数バーを置き、Salesforce の画面のスタイルとぶつからないようにする。
+ * Mounts the page-size bar into Salesforce pages (mountWithSlds of C2 in contract-summary.md, BR4.2, BR4.3).
+ * Puts the bundled SLDS and the bar inside a Shadow DOM so they never clash with the Salesforce page's styles.
  */
 import { Component, type ReactNode } from 'react';
 import { createRoot } from 'react-dom/client';
@@ -9,15 +9,15 @@ import { recordError } from '../errors/error-log';
 import { PAGE_MARKERS, type PageInfo } from '../page/page-context';
 import { PageSizeBar } from './PageSizeBar';
 
-/** 件数バーの入れ物に付ける目印。1 つのフレームに 1 つだけ出すために使う */
+/** Marker on the page-size bar host element. Used to show only one per frame */
 export const PAGE_SIZE_BAR_HOST_ATTRIBUTE = 'data-sftoybox-page-size-bar';
 
-/** Shadow DOM の中では :root が当たらないため、:host に置き換える */
+/** :root does not match inside a Shadow DOM, so rewrite it to :host */
 export function toShadowCss(css: string): string {
   return css.replace(/:root\b/g, ':host');
 }
 
-/** host に Shadow DOM を作り、同梱の SLDS を当てた入れ物を返す */
+/** Creates a Shadow DOM on host and returns a container with the bundled SLDS applied */
 export function mountWithSlds(host: Element): { root: Element } {
   const shadow = host.shadowRoot ?? host.attachShadow({ mode: 'open' });
   const style = host.ownerDocument.createElement('style');
@@ -31,7 +31,7 @@ export function mountWithSlds(host: Element): { root: Element } {
 type BoundaryProps = { children: ReactNode };
 type BoundaryState = { hasFailed: boolean };
 
-/** 表示中のエラーでも Salesforce の画面を壊さず、件数バーを出さないだけにする（BR4.3） */
+/** A render error never breaks the Salesforce page; the bar is simply not shown (BR4.3) */
 class PageSizeBarBoundary extends Component<BoundaryProps, BoundaryState> {
   override state: BoundaryState = { hasFailed: false };
 
@@ -64,8 +64,8 @@ function findListTable(doc: Document): Element | null {
 }
 
 /**
- * 一覧の表のすぐ上に件数バーを出す。表がなければ本文の先頭に出す。
- * すでに出ていれば足さずに、その入れ物を返す。一覧の画面でなければ何もしない。
+ * Shows the page-size bar right above the list table, or at the top of the body if there is no table.
+ * If it is already shown, returns the existing host without adding another. Does nothing outside list pages.
  */
 export function mountPageSizeBar(pageInfo: PageInfo, doc: Document = document): Element | null {
   if (pageInfo.pageKind !== 'pageSizeList') return null;

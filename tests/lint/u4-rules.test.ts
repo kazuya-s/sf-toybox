@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { lintRuleIds } from './helpers';
 
-/** U4 のファイルの場所（U4 cicd-pipeline.md 段階 2） */
+/** U4 file paths (U4 cicd-pipeline.md stage 2) */
 const U4_FILES = ['src/changeset-add-assist/x.ts', 'entrypoints/changeset-add-assist.ts'];
 const U4_STATE_FILE = 'src/changeset-add-assist/state.ts';
 
-describe('U4 の ESLint の禁止（cicd-pipeline.md 段階 2）', () => {
-  it('fetch と window.fetch がエラーになる（NFR1.1、NFR4.1）', async () => {
+describe('U4 ESLint bans (cicd-pipeline.md stage 2)', () => {
+  it('fetch and window.fetch are errors (NFR1.1, NFR4.1)', async () => {
     for (const file of U4_FILES) {
       expect(await lintRuleIds('fetch("/x");\n', file)).toContain('no-restricted-globals');
       expect(await lintRuleIds('window.fetch("/x");\n', file)).toContain(
@@ -18,7 +18,7 @@ describe('U4 の ESLint の禁止（cicd-pipeline.md 段階 2）', () => {
     }
   }, 30_000);
 
-  it('chrome.storage.local・localStorage・document.cookie がエラーになる（NFR1.1）', async () => {
+  it('chrome.storage.local, localStorage and document.cookie are errors (NFR1.1)', async () => {
     for (const file of U4_FILES) {
       expect(await lintRuleIds('chrome.storage.local.get("k");\n', file)).toContain(
         'no-restricted-properties',
@@ -32,7 +32,7 @@ describe('U4 の ESLint の禁止（cicd-pipeline.md 段階 2）', () => {
     }
   }, 30_000);
 
-  it('innerHTML への代入と dangerouslySetInnerHTML がエラーになる（NFR3.1）', async () => {
+  it('assigning innerHTML and dangerouslySetInnerHTML are errors (NFR3.1)', async () => {
     expect(
       await lintRuleIds('document.body.innerHTML = "<p>";\n', 'src/changeset-add-assist/x.ts'),
     ).toContain('no-restricted-properties');
@@ -44,13 +44,13 @@ describe('U4 の ESLint の禁止（cicd-pipeline.md 段階 2）', () => {
     ).toContain('react/no-danger');
   }, 30_000);
 
-  it('eval がエラーになる（NFR3.2）', async () => {
+  it('eval is an error (NFR3.2)', async () => {
     for (const file of U4_FILES) {
       expect(await lintRuleIds('eval("1");\n', file)).toContain('no-eval');
     }
   }, 30_000);
 
-  it('state.ts の外で addComponent を読み込むとエラーになる（NFR3.3）', async () => {
+  it('importing addComponent outside state.ts is an error (NFR3.3)', async () => {
     const cases = [
       ["import { addComponent } from '../salesforce';\n", 'src/changeset-add-assist/x.ts'],
       [
@@ -69,7 +69,7 @@ describe('U4 の ESLint の禁止（cicd-pipeline.md 段階 2）', () => {
         'no-restricted-imports',
       );
     }
-    // 同じ入口から、ほかの関数や型を読むのはよい
+    // Importing other functions or types from the same entry is fine
     expect(
       await lintRuleIds(
         "import type { AddRequest } from '../salesforce/index';\nexport type A = AddRequest;\n",
@@ -78,7 +78,7 @@ describe('U4 の ESLint の禁止（cicd-pipeline.md 段階 2）', () => {
     ).toEqual([]);
   }, 30_000);
 
-  it('state.ts では addComponent を読み込めるが、通信と保存の禁止は残る', async () => {
+  it('state.ts may import addComponent, but the network and storage bans remain', async () => {
     expect(
       await lintRuleIds(
         "import { addComponent } from '../salesforce/index';\nexport const a = addComponent;\n",
@@ -91,7 +91,7 @@ describe('U4 の ESLint の禁止（cicd-pipeline.md 段階 2）', () => {
     );
   }, 30_000);
 
-  it('U1・U2 のファイルの禁止は変わらない', async () => {
+  it('U1/U2 file bans are unchanged', async () => {
     expect(await lintRuleIds('fetch("/x");\n', 'src/settings/lint-sample.ts')).toContain(
       'no-restricted-globals',
     );

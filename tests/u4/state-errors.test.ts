@@ -1,6 +1,6 @@
 /**
- * 追加の状態の、失敗の扱いと記録（src/changeset-add-assist/state.ts、NFR1.2、NFR5.1、BR1.4、BR3.7）。
- * エラーの記録は U1 の本物の recordError（chrome.storage.local の模擬に書く）を使う。
+ * Failure handling and logging in the add state (src/changeset-add-assist/state.ts, NFR1.2, NFR5.1, BR1.4, BR3.7).
+ * Logging uses U1's real recordError (written to the chrome.storage.local mock).
  */
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { canAdd, UNEXPECTED_EXCEPTION_MESSAGE } from '../../src/changeset-add-assist/state';
@@ -23,13 +23,13 @@ function errorLog(): LoggedEntry[] {
   return (mockState().local.errorLog as LoggedEntry[] | undefined) ?? [];
 }
 
-describe('追加の状態の失敗の扱い（state-errors）', () => {
+describe('Add state failure handling (state-errors)', () => {
   beforeEach(() => {
     u2.reset();
     vi.spyOn(console, 'error').mockImplementation(() => undefined);
   });
 
-  it('失敗を外に出さない: U2 の関数が例外を投げても外に出ず、unexpectedResponse として扱う（NFR5.1）', async () => {
+  it('never lets failures escape: a throwing U2 function is handled as unexpectedResponse (NFR5.1)', async () => {
     u2.getChangeSet.nextThrow();
     u2.checkAddPreconditions.nextThrow(new TypeError('broken'));
     u2.listAddCandidates.nextThrow();
@@ -54,7 +54,7 @@ describe('追加の状態の失敗の扱い（state-errors）', () => {
     });
   });
 
-  it('記録の中身: 記録はツールの識別子・種類・文言の識別子（と時刻）だけで、候補や変更セットの名前を含まない（NFR1.2、BR3.7）', async () => {
+  it('log content: only the tool ID, kind, message key (and time), never candidate or change set names (NFR1.2, BR3.7)', async () => {
     u2.checkAddPreconditions.nextFail('permissionDenied');
     u2.listAddCandidates.next(
       ok({ candidates: candidatesFixture('basic'), complete: false, failedPages: 1 }),
@@ -85,7 +85,7 @@ describe('追加の状態の失敗の扱い（state-errors）', () => {
     expect(serialized).not.toContain('TestAmount__c');
   });
 
-  it('候補が complete: false なら読めた分を出し、candidatesLoaded は true で、追加できる（BR1.4）', async () => {
+  it('with complete: false candidates, shows what was read, candidatesLoaded is true, and adding works (BR1.4)', async () => {
     u2.listAddCandidates.next(
       ok({ candidates: candidatesFixture('noParent'), complete: false, failedPages: 2 }),
     );
@@ -103,7 +103,7 @@ describe('追加の状態の失敗の扱い（state-errors）', () => {
     expect(store.getState().result?.succeeded).toHaveLength(1);
   });
 
-  it('候補の読み込みの sessionExpired は、やり直しなしの止める理由になる（BR1.4）', async () => {
+  it('sessionExpired while loading candidates becomes a blocking reason without retry (BR1.4)', async () => {
     u2.listAddCandidates.nextFail('sessionExpired');
 
     const store = await storeWithSelection(['00N000000000001']);
@@ -117,7 +117,7 @@ describe('追加の状態の失敗の扱い（state-errors）', () => {
     expect(canAdd(store.getState())).toBe(false);
   });
 
-  it('追加の結果の unexpectedResponse は「追加できなかったもの」に理由つきで入り、残りは試さない（U2 BR3.3）', async () => {
+  it('unexpectedResponse from adding goes to "Not added" with its reason and the rest are not tried (U2 BR3.3)', async () => {
     const store = await storeWithSelection(['00N000000000001', '00N000000000002']);
     u2.addComponent.nextFail('unexpectedResponse', 'changeset.addNotConfirmed');
 

@@ -1,7 +1,7 @@
 /**
- * 見出しを固定した表と並べ替え（BR2.1、BR2.2、BR2.7）。
- * 見出しはクリックでも Enter でも並べ替え、aria-sort で向きを示す。
- * 文字は React の通常の表示だけで出す（NFR3.1）。
+ * Table with a sticky header and sorting (BR2.1, BR2.2, BR2.7).
+ * Headers sort on click or Enter and show the direction with aria-sort.
+ * Text is rendered as plain React text only (NFR3.1).
  */
 import type { KeyboardEvent } from 'react';
 import { t } from '../../i18n/presentation';

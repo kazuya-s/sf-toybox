@@ -1,11 +1,11 @@
 /**
- * 問い合わせ先（GitHub の Issue）の URL（BR1.8、AC1.1.6）。
- * package.json の bugs.url から読む。リポジトリが決まるまでは空のままで、そのあいだ設定画面は
- * リンクの代わりに「リポジトリの準備中」を出す（code-generation-plan.md「作者に確かめたいこと」）。
+ * Support URL (GitHub Issues) (BR1.8, AC1.1.6).
+ * Read from bugs.url in package.json. It stays empty until the repository exists; meanwhile the options page
+ * shows "Repository coming soon" instead of a link (code-generation-plan.md, "Questions for the author").
  */
 import { bugs } from '../../package.json';
 
-/** https の URL だけを使う。空や形の正しくない値は null（未設定） */
+/** Only https URLs are used. Empty or malformed values become null (not configured) */
 export function resolveSupportUrl(raw: unknown): string | null {
   if (typeof raw !== 'string' || raw.trim() === '') return null;
   try {
