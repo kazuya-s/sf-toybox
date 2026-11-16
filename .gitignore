@@ -30,9 +30,10 @@ node_modules/
 .wxt/
 coverage/
 
-# AI-DLC の作業用コピー（ワークツリー）と一時ファイル
+# AI-DLC 本体・作業の記録・作業用コピー（公開リポジトリには入れない。手元でだけ使う）
 .aidlc/
-aidlc/.aidlc-subagent-inflight
+aidlc/
+.claude/
 
 # ログイン情報・鍵・秘密の値（どこにあっても入れない）
 .env
